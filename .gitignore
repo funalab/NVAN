@@ -1,0 +1,21 @@
+# Mac OSX
+.DS_Store
+
+# Emacs
+*~
+
+# VSCode
+.vscode
+
+# Python
+*.pyc
+lib/*.pyc
+.ipynb_checkpoints
+
+# Output&Resource
+results*
+datasets*
+models*
+images*
+scripts*
+refs
