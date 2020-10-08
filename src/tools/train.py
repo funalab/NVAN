@@ -79,7 +79,7 @@ def main(argv=None):
         classifier = torch.load(args.init_classifier)
 
     # Prepare device
-    if args.device is 'cuda:0':
+    if args.device is 'cuda':
         classifier = classifier.to(args.device)
     else:
         classifier = classifier.to(args.device)
