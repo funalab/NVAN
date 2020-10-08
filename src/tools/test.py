@@ -18,9 +18,9 @@ import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-from src.lib.utils.utils import get_model, get_dataset
+from src.lib.utils.utils import get_model, get_test_dataset
 from src.lib.utils.cmd_args import create_dataset_parser, create_classifier_parser, create_runtime_parser
-from src.lib.trainer.trainer import Trainer
+from src.lib.trainer.trainer import Tester
 from src.lib.datasets.data_loader import pad_collate
 
 
@@ -86,62 +86,30 @@ def main(argv=None):
 
     ''' Dataset '''
     # Load dataset
-    train_dataset, validation_dataset = get_dataset(args)
-    print('-- train_dataset.size = {}\n-- validation_dataset.size = {}'.format(
-        train_dataset.__len__(), validation_dataset.__len__()))
+    test_dataset = get_test_dataset(args)
+    print('-- test_dataset.size = {}'.format(
+        test_dataset.__len__()))
 
     ''' Iterator '''
     # Set up iterators
-    train_iterator = DataLoader(
-        dataset=train_dataset,
-        batch_size=int(args.batchsize),
-        shuffle=True,
-        collate_fn=pad_collate
-    )
-    validation_iterator = DataLoader(
-        dataset=validation_dataset,
+    test_iterator = DataLoader(
+        dataset=test_dataset,
         batch_size=int(args.val_batchsize),
         shuffle=False,
         collate_fn=pad_collate
     )
-
-    ''' Optimizer '''
-    # Initialize an optimizer
-    if args.optimizer == 'SGD':
-        optimizer = optim.SGD(
-            params=classifier.parameters(),
-            lr=args.lr,
-            momentum=args.momentum,
-            weight_decay=args.weight_decay
-            )
-    elif args.optimizer == 'Adam':
-        optimizer = optim.Adam(
-            params=classifier.parameters(),
-            lr=args.lr,
-            weight_decay=args.weight_decay
-            )
-    else:
-        raise ValueError('Unknown optimizer name: {}'.format(args.optimizer))
 
     # Make Directory
     current_datetime = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y%m%d_%H%M%S')
     save_dir = args.save_dir + '_' + str(current_datetime)
     os.makedirs(save_dir, exist_ok=True)
 
-    # Training
-    trainer_args = {
-        'optimizer' : optimizer,
-        'epoch' : args.epoch,
-        'save_dir' : save_dir,
-        'eval_metrics' : args.eval_metrics
-    }
-
-    trainer = Trainer(**trainer_args)
-    trainer.train(
-        model=classifier,
-        train_iterator=train_iterator,
-        validation_iterator=validation_iterator
-    )
+    tester_args = {
+        'save_dir' : save_dir
+        }
+    tester = Tester(**tester_args)
+    result, _ = tester.test(classifier, test_iterator)
+    print("f1-score on test: {}".format(result["f1"]))
 
 if __name__ == '__main__':
     main()

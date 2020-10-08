@@ -6,7 +6,7 @@ from src.lib.datasets.transforms import normalize
 
 
 def get_model(args):
-    model = LSTMClassifier(
+    model = eval(args.model)(
             input_dim=args.input_dim,
             embed_dim=args.embed_dim,
             num_classes=args.num_classes,
