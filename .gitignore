@@ -15,7 +15,6 @@ lib/*.pyc
 # Output&Resource
 results*
 datasets*
-models*
 images*
 scripts*
 refs
