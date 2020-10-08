@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import argparse
 import configparser
 import multiprocessing
@@ -20,7 +21,7 @@ from torch.utils.data import DataLoader
 
 from src.lib.utils.utils import get_model, get_test_dataset
 from src.lib.utils.cmd_args import create_dataset_parser, create_classifier_parser, create_runtime_parser
-from src.lib.trainer.trainer import Tester
+from src.lib.trainer.trainer import Tester, Tester_ROC
 from src.lib.datasets.data_loader import pad_collate
 
 
@@ -108,8 +109,12 @@ def main(argv=None):
         'save_dir' : save_dir
         }
     tester = Tester(**tester_args)
+    tester_ROC = Tester_ROC(**tester_args)
     result, _ = tester.test(classifier, test_iterator)
+    tester_ROC.test(classifier, test_iterator)
     print("f1-score on test: {}".format(result["f1"]))
+    with open(os.path.join(save_dir, 'log'), 'w') as f:
+        json.dump(result, f, indent=4)
 
 if __name__ == '__main__':
     main()
