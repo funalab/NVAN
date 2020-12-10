@@ -19,15 +19,21 @@ class EmbryoDataset(Dataset):
     def __len__(self):
         return len(self.file_list)
 
-    def __getitem__(self, i):
-        input = csv_loader(os.path.join(self.root, 'input', self.file_list[i], 'criteria.csv'))
+    def get_input(self, i):
+        input = csv_loader(os.path.join(self.root, 'ts_criteria', self.file_list[i], 'criteria.csv'))
+        return input
+
+    def get_label(self, i):
         if self.file_list[i] in self.born_list:
             label = np.array([1])
         elif self.file_list[i] in self.abort_list:
             label = np.array([0])
         else:
             raise ValueError('Unknown file name: {}'.format(self.file_list[i]))
+        return label
 
+    def __getitem__(self, i):
+        input, label = self.get_input(i), self.get_label(i)
         # if self.transform:
         #     input = self.transform(input)
 

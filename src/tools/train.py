@@ -22,6 +22,7 @@ from src.lib.utils.utils import get_model, get_dataset
 from src.lib.utils.cmd_args import create_dataset_parser, create_classifier_parser, create_runtime_parser
 from src.lib.trainer.trainer import Trainer
 from src.lib.datasets.data_loader import pad_collate
+from src.lib.datasets.sampler import BalancedBatchSampler
 
 
 def main(argv=None):
@@ -90,12 +91,14 @@ def main(argv=None):
     print('-- train_dataset.size = {}\n-- validation_dataset.size = {}'.format(
         train_dataset.__len__(), validation_dataset.__len__()))
 
+    train_sampler = BalancedBatchSampler(train_dataset, n_classes=args.num_classes, n_samples=15)
+
     ''' Iterator '''
     # Set up iterators
     train_iterator = DataLoader(
         dataset=train_dataset,
-        batch_size=int(args.batchsize),
-        shuffle=True,
+        #batch_size=int(args.batchsize),
+        batch_sampler=train_sampler,
         collate_fn=pad_collate
     )
     validation_iterator = DataLoader(
