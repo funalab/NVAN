@@ -33,7 +33,7 @@ class Trainer(object):
             model.train()
 
             loss_train = self._train_step(model, train_iterator)
-            eval_results, loss_train_2 = validator.test(model, train_iterator, phase="train")
+            #eval_results, loss_train_2 = validator.test(model, train_iterator, phase="train")
             eval_results, loss_val = validator.test(model, validation_iterator, phase="validation")
 
             self._save_log(epoch, loss_train, loss_val, eval_results)

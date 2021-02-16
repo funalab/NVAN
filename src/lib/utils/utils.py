@@ -1,6 +1,6 @@
 import os
 import torch.nn as nn
-from src.lib.models.net import LSTMClassifier, BiDirectionalLSTMClassifier
+from src.lib.models.net import LSTMClassifier, LSTMAttentionClassifier, BiDirectionalLSTMClassifier
 from src.lib.datasets.dataset import EmbryoDataset
 from src.lib.datasets.transforms import normalize
 

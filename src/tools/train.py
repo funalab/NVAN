@@ -91,7 +91,7 @@ def main(argv=None):
     print('-- train_dataset.size = {}\n-- validation_dataset.size = {}'.format(
         train_dataset.__len__(), validation_dataset.__len__()))
 
-    train_sampler = BalancedBatchSampler(train_dataset, n_classes=args.num_classes, n_samples=15)
+    train_sampler = BalancedBatchSampler(train_dataset, n_classes=args.num_classes, n_samples=args.batchsize)
 
     ''' Iterator '''
     # Set up iterators
