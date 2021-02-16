@@ -45,10 +45,16 @@ class LSTMAttentionClassifier(nn.Module):
         hidden = final_state.squeeze(0)
         attn_weights = torch.bmm(lstm_out, hidden.unsqueeze(2)).squeeze(2)
         soft_attn_weights = F.softmax(attn_weights, 1)
-        # print('attention score shape: {}'.format(soft_attn_weights.shape))
-        # print(soft_attn_weights)
         new_hidden_state = torch.bmm(lstm_out.transpose(1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
         return new_hidden_state
+
+    def vis_attention(self, lstm_out, final_state):
+        hidden = final_state.squeeze(0)
+        attn_weights = torch.bmm(lstm_out, hidden.unsqueeze(2)).squeeze(2)
+        soft_attn_weights = F.softmax(attn_weights, 1)
+        new_hidden_state = torch.bmm(lstm_out.transpose(1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
+        return new_hidden_state
+
 
     def forward(self, input):
         lstm_out, (final_hidden_state, _) = self.lstm(input.permute(1, 0, 2))

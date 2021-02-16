@@ -26,7 +26,7 @@ class Trainer(object):
             }
         validator = Tester(**tester_args)
         start = time.time()
-        best_epoch = 0
+        best_epoch = 1
 
         for epoch in range(1, self.epoch + 1):
             print('[epoch {}]'.format(epoch))
@@ -43,10 +43,11 @@ class Trainer(object):
                 torch.save(model, os.path.join(self.save_dir, 'best_model'))
                 best_epoch = epoch
                 print("Saved better model selected by validation.")
-        print('best f1: {}'.format(self._best_accuracy))
         with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
             json.dump({'best f-score': self._best_accuracy,
                         'best epoch': best_epoch}, f, indent=4)
+        print('best f1: {}'.format(self._best_accuracy))
+        print('best epoch: {}'.format(best_epoch))
 
 
     def _train_step(self, model, data_iterator):
@@ -130,6 +131,10 @@ class Tester(object):
         eval_results = self.evaluate(output_list, truth_list)
         print("[{}] {}, loss: {}".format(phase, self.print_eval_results(eval_results), abs(np.mean(loss_list))))
 
+        if phase == 'test':
+            self.evaluate_auc(output_list, truth_list)
+
+
         return eval_results, abs(np.mean(loss_list))
 
 
@@ -161,6 +166,57 @@ class Tester(object):
         # print(metrics_dict)
 
         return metrics_dict
+
+    def evaluate_auc(self, predict, truth):
+        """Compute evaluation metrics.
+
+        :param predict: list of Tensor
+        :param truth: list of dict
+        :return eval_results: dict, format {name: metrics}.
+        """
+        y_trues, y_preds = [], []
+        for y_true, logit in zip(truth, predict):
+            y_true = y_true.cpu().numpy()
+            y_pred = [[l.cpu().numpy()[1] for l in logit]]
+            y_trues.append(y_true)
+            y_preds.append(y_pred)
+        y_true = np.concatenate(y_trues, axis=0).reshape(len(y_trues))
+        y_pred = np.concatenate(y_preds, axis=0).reshape(len(y_preds))
+
+        self._vis_auroc(y_pred, y_true)
+        self._vis_aupr(y_pred, y_true)
+
+        print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
+        print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
+
+
+    def _vis_auroc(self, y_pred, y_true):
+        fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred)
+        auroc = metrics.roc_auc_score(y_true, y_pred)
+        print('AUROC: {}'.format(auroc))
+        plt.figure(figsize=(8, 8))
+        plt.plot(fpr, tpr, marker='o', label='AUROC={:.4f}'.format(auroc))
+        plt.xlabel('False positive rate', fontsize=18)
+        plt.ylabel('True positive rate', fontsize=18)
+        plt.xlim([-0.05, 1.05])
+        plt.ylim([-0.05, 1.05])
+        plt.legend(loc=4, fontsize=18)
+        plt.savefig(os.path.join(self.save_dir, 'AUROC.pdf'))
+
+    def _vis_aupr(self, y_pred, y_true):
+        precision, recall, thresholds = metrics.precision_recall_curve(y_true, y_pred)
+        aupr = metrics.average_precision_score(y_true, y_pred)
+        print('AUPR: {}'.format(aupr))
+        precision = np.concatenate([np.array([0.0]), precision])
+        recall = np.concatenate([np.array([1.0]), recall])
+        plt.figure(figsize=(8, 8))
+        plt.plot(precision, recall, marker='o', label='AUPR={:.4f}'.format(aupr))
+        plt.xlabel('Recall', fontsize=18)
+        plt.ylabel('Precision', fontsize=18)
+        plt.xlim([-0.05, 1.05])
+        plt.ylim([-0.05, 1.05])
+        plt.legend(loc=3, fontsize=18)
+        plt.savefig(os.path.join(self.save_dir, 'AUPR.pdf'))
 
 
     def print_eval_results(self, results):
@@ -205,120 +261,3 @@ class Predictor(object):
         y_pred = np.concatenate(y_preds, axis=0)
 
         return y_pred
-
-
-class Tester_ROC(object):
-
-    def __init__(self, **kwargs):
-        self.save_dir = kwargs['save_dir']
-
-    def test(self, model, data_iter, phase="test"):
-
-        # turn on the testing mode; clean up the history
-        model.eval()
-        output_list = []
-        truth_list = []
-        loss_list = []
-
-        # predict
-        for batch in data_iter:
-            input, label = batch
-
-            with torch.no_grad():
-                prediction = model(input)
-
-            output_list.append(prediction.detach())
-            truth_list.append(label.detach())
-            loss = model.loss(prediction, label.view(len(label)))
-            loss_list.append(loss.detach())
-
-        # evaluate
-        auroc, aupr = self.evaluate_ROC(output_list, truth_list)
-
-
-    def evaluate(self, predict, truth):
-        """Compute evaluation metrics.
-
-        :param predict: list of Tensor
-        :param truth: list of dict
-        :return eval_results: dict, format {name: metrics}.
-        """
-        y_trues, y_preds = [], []
-        for y_true, logit in zip(truth, predict):
-            y_true = y_true.cpu().numpy()
-            y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
-            y_trues.append(y_true)
-            y_preds.append(y_pred)
-        y_true = np.concatenate(y_trues, axis=0)
-        y_pred = np.concatenate(y_preds, axis=0).reshape(len(y_true), 1)
-
-        accuracy = metrics.accuracy_score(y_true, y_pred)
-        precision = metrics.precision_score(y_true, y_pred, pos_label=1)
-        recall = metrics.recall_score(y_true, y_pred, pos_label=1)
-        f1 = metrics.f1_score(y_true, y_pred, pos_label=1)
-
-        metrics_dict = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
-
-        print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
-        print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
-        # print(metrics_dict)
-
-        return metrics_dict
-
-
-    def evaluate_ROC(self, predict, truth):
-        """Compute evaluation metrics.
-
-        :param predict: list of Tensor
-        :param truth: list of dict
-        :return eval_results: dict, format {name: metrics}.
-        """
-        y_trues, y_preds = [], []
-        for y_true, logit in zip(truth, predict):
-            y_true = y_true.cpu().numpy()
-            y_pred = [[l.cpu().numpy()[1] for l in logit]]
-            y_trues.append(y_true)
-            y_preds.append(y_pred)
-        y_true = np.concatenate(y_trues, axis=0).reshape(17)
-        y_pred = np.concatenate(y_preds, axis=0).reshape(17)
-
-        fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred)
-        auroc = metrics.roc_auc_score(y_true, y_pred)
-        print('AUROC: {}'.format(auroc))
-        plt.figure(figsize=(8, 8))
-        plt.plot(fpr, tpr, marker='o', label='AUROC={:.4f}'.format(auroc))
-        plt.xlabel('False positive rate', fontsize=18)
-        plt.ylabel('True positive rate', fontsize=18)
-        plt.xlim([-0.05, 1.05])
-        plt.ylim([-0.05, 1.05])
-        plt.legend(loc=4, fontsize=18)
-        plt.savefig(os.path.join(self.save_dir, 'AUROC.pdf'))
-
-        precision, recall, thresholds = metrics.precision_recall_curve(y_true, y_pred)
-        aupr = metrics.average_precision_score(y_true, y_pred)
-        precision = np.concatenate([np.array([0.0]), precision])
-        recall = np.concatenate([np.array([1.0]), recall])
-        plt.figure(figsize=(8, 8))
-        plt.plot(precision, recall, marker='o', label='AUPR={:.4f}'.format(aupr))
-        plt.xlabel('Recall', fontsize=18)
-        plt.ylabel('Precision', fontsize=18)
-        plt.xlim([-0.05, 1.05])
-        plt.ylim([-0.05, 1.05])
-        plt.legend(loc=3, fontsize=18)
-        plt.savefig(os.path.join(self.save_dir, 'AUPR.pdf'))
-
-
-        print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
-        print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
-        # print(metrics_dict)
-
-        return auroc, aupr
-
-
-    def print_eval_results(self, results):
-        """Override this method to support more print formats.
-        :param results: dict, (str: float) is (metrics name: value)
-        """
-        return ", ".join(
-            [str(key) + "=" + "{:.4f}".format(value)
-             for key, value in results.items()])
