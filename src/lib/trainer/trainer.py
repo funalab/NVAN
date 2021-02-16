@@ -26,6 +26,7 @@ class Trainer(object):
             }
         validator = Tester(**tester_args)
         start = time.time()
+        best_epoch = 0
 
         for epoch in range(1, self.epoch + 1):
             print('[epoch {}]'.format(epoch))
@@ -40,8 +41,12 @@ class Trainer(object):
 
             if self.best_eval_result(eval_results):
                 torch.save(model, os.path.join(self.save_dir, 'best_model'))
+                best_epoch = epoch
                 print("Saved better model selected by validation.")
         print('best f1: {}'.format(self._best_accuracy))
+        with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
+            json.dump({'best f-score': self._best_accuracy,
+                        'best epoch': best_epoch}, f, indent=4)
 
 
     def _train_step(self, model, data_iterator):
