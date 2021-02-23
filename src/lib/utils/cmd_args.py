@@ -75,6 +75,8 @@ def create_runtime_parser(remaining_argv, **conf_dict):
                         help='Weight decay for optimizer scheduling')
     parser.add_argument('--device',
                         help='GPU ID (negative value indicates CPU')
+    parser.add_argument('--phase',
+                        help='Specify mode (train, test)')
     args, remaining_argv = parser.parse_known_args(remaining_argv)
 
     return parser, args, remaining_argv

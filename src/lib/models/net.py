@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import torch.nn.functional as F
+import matplotlib.pylab as plt
 
 from src.lib.models.function import mask_softmax, mask_mean, mask_max, seq_mask
 
@@ -29,7 +30,17 @@ class LSTMClassifier(nn.Module):
 
 
 class LSTMAttentionClassifier(nn.Module):
-    def __init__(self, input_dim, embed_dim, num_classes, num_layers, hidden_dim, dropout, lossfun):
+    def __init__(
+            self,
+            input_dim,
+            embed_dim,
+            num_classes,
+            num_layers,
+            hidden_dim,
+            dropout,
+            lossfun,
+            phase='train'
+            ):
         super(LSTMAttentionClassifier, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
@@ -40,30 +51,88 @@ class LSTMAttentionClassifier(nn.Module):
         # self.hidden2tag = nn.Linear(hidden_dim*2, num_classes)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
+        self.phase = phase
 
     def attention(self, lstm_out, final_state):
         hidden = final_state.squeeze(0)
         attn_weights = torch.bmm(lstm_out, hidden.unsqueeze(2)).squeeze(2)
         soft_attn_weights = F.softmax(attn_weights, 1)
         new_hidden_state = torch.bmm(lstm_out.transpose(1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
-        return new_hidden_state
-
-    def vis_attention(self, lstm_out, final_state):
-        hidden = final_state.squeeze(0)
-        attn_weights = torch.bmm(lstm_out, hidden.unsqueeze(2)).squeeze(2)
-        soft_attn_weights = F.softmax(attn_weights, 1)
-        new_hidden_state = torch.bmm(lstm_out.transpose(1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
-        return new_hidden_state
-
+        return new_hidden_state, soft_attn_weights
 
     def forward(self, input):
         lstm_out, (final_hidden_state, _) = self.lstm(input.permute(1, 0, 2))
         # lstm_out, (final_hidden_state, _) = self.lstm(input.view(np.shape(input)[1], np.shape(input)[0], -1))
         lstm_out = lstm_out.permute(1, 0, 2)
-        attn_out = self.attention(lstm_out, final_hidden_state)
+        attn_out, attn_weights = self.attention(lstm_out, final_hidden_state)
         tag_space = self.hidden2tag(attn_out)
         tag_scores = self.softmax(tag_space)
-        return tag_scores
+
+        if self.phase == 'test':
+            return tag_scores, attn_weights
+        else:
+            return tag_scores
+
+
+class MuVAN(nn.Module):
+    """
+    Multi-view Attention Network for Multivariate Temporal Data
+
+    Parameters
+    ----------
+    input_dim : dimention of multivariable
+    embed_dim : hidden size
+    num_classes : 
+    num_layers : number of hidden layers. Default: 1
+    hidden_dim : 
+    dropout : dropout rate. Default: 0.5
+    lossfun : 
+
+    Inputs
+    ------
+    input: tensor, shaped [batch, max_step, input_size]
+
+    Outputs
+    -------
+    output: tensor, shaped [batch, max_step, num_directions * hidden_size],
+         tensor containing the output features (h_t) from the last layer
+         of the LSTM, for each t.
+    """
+
+    def __init__(
+            self,
+            input_dim,
+            embed_dim,
+            num_classes,
+            num_layers,
+            hidden_dim,
+            dropout,
+            lossfun,
+            phase='train'
+            ):
+        super(MuVAN, self).__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
+        self.hidden2tag = nn.Linear(hidden_dim, num_classes)
+        self.softmax = nn.Softmax(dim=1)
+        self.loss = lossfun
+        self.phase = phase
+
+    def forward(self, input):
+        print(input.shape)
+        hidden_matrix = []
+        for v in range(self.input_dim):
+            lstm_out, (final_hidden_state, _) = self.bgru(input[:,:,v].permute(1, 0, 2))
+            lstm_out = lstm_out.permute(1, 0, 2)
+            print('lstm_out: {}'.format(lstm_out.shape))
+            print('final_hidden_state: {}'.format(final_hidden_state.shape))
+            hidden_matrix.append(lstm_out)
+        print(np.shape(hidden_matrix))
+        
+            
+
 
 
 

@@ -1,6 +1,6 @@
 import os
 import torch.nn as nn
-from src.lib.models.net import LSTMClassifier, LSTMAttentionClassifier, BiDirectionalLSTMClassifier
+from src.lib.models.net import LSTMClassifier, LSTMAttentionClassifier, BiDirectionalLSTMClassifier, MuVAN
 from src.lib.datasets.dataset import EmbryoDataset
 from src.lib.datasets.transforms import normalize
 
@@ -13,7 +13,8 @@ def get_model(args):
             num_layers=args.num_layers,
             hidden_dim=args.hidden_dim,
             dropout=args.dropout,
-            lossfun=eval(args.lossfun)
+            lossfun=eval(args.lossfun),
+            phase=args.phase
         )
     return model
 

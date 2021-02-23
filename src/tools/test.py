@@ -78,6 +78,8 @@ def main(argv=None):
     if args.init_classifier is not None:
         print('Load classifier from', args.init_classifier)
         classifier = torch.load(args.init_classifier)
+        classifier.phase = args.phase
+
 
     # Prepare device
     if args.device is 'cuda:0':
@@ -106,11 +108,11 @@ def main(argv=None):
     os.makedirs(save_dir, exist_ok=True)
 
     tester_args = {
-        'save_dir' : save_dir
+        'save_dir' : save_dir,
+        'file_list' : test_dataset.file_list
         }
     tester = Tester(**tester_args)
     result, _ = tester.test(classifier, test_iterator, phase='test')
-    print(result)
     with open(os.path.join(save_dir, 'log'), 'w') as f:
         json.dump(result, f, indent=4)
 

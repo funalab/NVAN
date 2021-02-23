@@ -22,7 +22,8 @@ class Trainer(object):
 
     def train(self, model, train_iterator, validation_iterator):
         tester_args = {
-            'save_dir' : self.save_dir
+            'save_dir' : self.save_dir,
+            'file_list' : None
             }
         validator = Tester(**tester_args)
         start = time.time()
@@ -106,12 +107,14 @@ class Tester(object):
 
     def __init__(self, **kwargs):
         self.save_dir = kwargs['save_dir']
+        self.file_list = kwargs['file_list']
 
     def test(self, model, data_iter, phase="test"):
 
         # turn on the testing mode; clean up the history
         model.eval()
         output_list = []
+        attn_weights_list = []
         truth_list = []
         loss_list = []
 
@@ -119,8 +122,13 @@ class Tester(object):
         for batch in data_iter:
             input, label = batch
 
-            with torch.no_grad():
-                prediction = model(input)
+            if phase == 'test':
+                with torch.no_grad():
+                    prediction, attn_weights = model(input)
+                attn_weights_list.append(attn_weights.detach())
+            else:
+                with torch.no_grad():
+                    prediction = model(input)
 
             output_list.append(prediction.detach())
             truth_list.append(label.detach())
@@ -129,11 +137,13 @@ class Tester(object):
 
         # evaluate
         eval_results = self.evaluate(output_list, truth_list)
-        print("[{}] {}, loss: {}".format(phase, self.print_eval_results(eval_results), abs(np.mean(loss_list))))
-
         if phase == 'test':
-            self.evaluate_auc(output_list, truth_list)
+            auroc, aupr = self.evaluate_auc(output_list, truth_list)
+            self.vis_attn_weights(attn_weights_list, output_list, truth_list)
+            eval_results['AUROC'] = auroc
+            eval_results['AUPR'] = aupr
 
+        print("[{}] {}, loss: {}".format(phase, self.print_eval_results(eval_results), abs(np.mean(loss_list))))
 
         return eval_results, abs(np.mean(loss_list))
 
@@ -163,9 +173,9 @@ class Tester(object):
 
         print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
         print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
-        # print(metrics_dict)
 
         return metrics_dict
+
 
     def evaluate_auc(self, predict, truth):
         """Compute evaluation metrics.
@@ -183,17 +193,15 @@ class Tester(object):
         y_true = np.concatenate(y_trues, axis=0).reshape(len(y_trues))
         y_pred = np.concatenate(y_preds, axis=0).reshape(len(y_preds))
 
-        self._vis_auroc(y_pred, y_true)
-        self._vis_aupr(y_pred, y_true)
+        auroc = self._vis_auroc(y_pred, y_true)
+        aupr = self._vis_aupr(y_pred, y_true)
 
-        print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
-        print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
+        return auroc, aupr
 
 
     def _vis_auroc(self, y_pred, y_true):
         fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred)
         auroc = metrics.roc_auc_score(y_true, y_pred)
-        print('AUROC: {}'.format(auroc))
         plt.figure(figsize=(8, 8))
         plt.plot(fpr, tpr, marker='o', label='AUROC={:.4f}'.format(auroc))
         plt.xlabel('False positive rate', fontsize=18)
@@ -202,11 +210,11 @@ class Tester(object):
         plt.ylim([-0.05, 1.05])
         plt.legend(loc=4, fontsize=18)
         plt.savefig(os.path.join(self.save_dir, 'AUROC.pdf'))
+        return auroc
 
     def _vis_aupr(self, y_pred, y_true):
         precision, recall, thresholds = metrics.precision_recall_curve(y_true, y_pred)
         aupr = metrics.average_precision_score(y_true, y_pred)
-        print('AUPR: {}'.format(aupr))
         precision = np.concatenate([np.array([0.0]), precision])
         recall = np.concatenate([np.array([1.0]), recall])
         plt.figure(figsize=(8, 8))
@@ -217,6 +225,28 @@ class Tester(object):
         plt.ylim([-0.05, 1.05])
         plt.legend(loc=3, fontsize=18)
         plt.savefig(os.path.join(self.save_dir, 'AUPR.pdf'))
+        return aupr
+
+    def vis_attn_weights(self, attn_weights_list, predict, truth):
+        y_trues, y_preds = [], []
+        cnt = 0
+        for y_true, logit, aw in zip(truth, predict, attn_weights_list):
+            y_true = y_true.cpu().numpy()
+            y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
+            aw = aw.cpu().numpy()
+            filename = os.path.join(self.save_dir, 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
+            self.make_heatmap(aw, y_pred, y_true, filename)
+            cnt += 1
+
+
+    def make_heatmap(self, aw, y_pred, y_true, filename):
+        plt.figure()
+        plt.imshow(aw, interpolation='nearest', vmin=0, vmax=1, cmap='jet', aspect=10)
+        plt.yticks([])
+        plt.xlabel('time point')
+        plt.title('pred={0}, gt={1}'.format('born' if y_pred[0][0] == 1 else 'abort', 'born' if y_true[0][0] == 1 else 'abort'))
+        plt.colorbar()
+        plt.savefig(filename)
 
 
     def print_eval_results(self, results):
