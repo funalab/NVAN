@@ -11,9 +11,13 @@
 *.pyc
 lib/*.pyc
 .ipynb_checkpoints
+__pycache__
 
-# Output&Resource
+
+# Output & Resource
 results*
 images*
 scripts*
 refs
+datasets
+reports
