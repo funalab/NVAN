@@ -233,7 +233,7 @@ class Tester(object):
         for y_true, logit, aw in zip(truth, predict, attn_weights_list):
             y_true = y_true.cpu().numpy()
             y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
-            aw = aw.cpu().numpy()
+            aw = aw.squeeze(0).cpu().numpy()
             filename = os.path.join(self.save_dir, 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
             self.make_heatmap(aw, y_pred, y_true, filename)
             cnt += 1
@@ -241,8 +241,9 @@ class Tester(object):
 
     def make_heatmap(self, aw, y_pred, y_true, filename):
         plt.figure()
-        plt.imshow(aw, interpolation='nearest', vmin=0, vmax=1, cmap='jet', aspect=10)
-        plt.yticks([])
+        plt.imshow(aw, interpolation='nearest', vmin=0, vmax=1, cmap='jet', aspect=20)
+        plt.ylim([-0.5, len(aw)-0.5])
+        plt.yticks([i for i in range(0, len(aw))], [i for i in range(len(aw), 0, -1)])
         plt.xlabel('time point')
         plt.title('pred={0}, gt={1}'.format('born' if y_pred[0][0] == 1 else 'abort', 'born' if y_true[0][0] == 1 else 'abort'))
         plt.colorbar()
