@@ -82,7 +82,7 @@ def main(argv=None):
 
 
     # Prepare device
-    if args.device is 'cuda:0':
+    if args.device == 'cuda:0':
         classifier = classifier.to(args.device)
     else:
         classifier = classifier.to(args.device)
