@@ -58,7 +58,7 @@ class Trainer(object):
             input, label = batch
 
             self.optimizer.zero_grad()
-            logits = model(input.to(torch.device(args.device)))
+            logits = model(input.to(torch.device(self.device)))
             loss = model.loss(logits, label.view(len(label)))
             loss_list.append(loss.detach())
             loss.backward()
@@ -128,7 +128,7 @@ class Tester(object):
                 attn_weights_list.append(attn_weights.detach())
             else:
                 with torch.no_grad():
-                    prediction = model(input.to(torch.device(args.device)))
+                    prediction = model(input.to(torch.device(self.device)))
 
             output_list.append(prediction.detach())
             truth_list.append(label.detach())
