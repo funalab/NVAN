@@ -59,7 +59,7 @@ class Trainer(object):
 
             self.optimizer.zero_grad()
             logits = model(input.to(torch.device(self.device)))
-            loss = model.loss(logits, label.view(len(label)))
+            loss = model.loss(logits, label.to(torch.device(self.device)).view(len(label)))
             loss_list.append(loss.detach())
             loss.backward()
             self.optimizer.step()
