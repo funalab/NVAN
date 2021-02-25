@@ -136,7 +136,8 @@ def main(argv=None):
         'optimizer' : optimizer,
         'epoch' : args.epoch,
         'save_dir' : save_dir,
-        'eval_metrics' : args.eval_metrics
+        'eval_metrics' : args.eval_metrics,
+        'device' : args.device
     }
 
     trainer = Trainer(**trainer_args)

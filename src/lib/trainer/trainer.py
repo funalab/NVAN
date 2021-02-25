@@ -17,6 +17,7 @@ class Trainer(object):
         self.save_dir = kwargs['save_dir']
         self.eval_metrics = kwargs['eval_metrics']
         self._best_accuracy = 0.0
+        self.device = kwargs['device']
         self.results = {}
 
 
@@ -35,7 +36,6 @@ class Trainer(object):
             model.train()
 
             loss_train = self._train_step(model, train_iterator)
-            #eval_results, loss_train_2 = validator.test(model, train_iterator, phase="train")
             eval_results, loss_val = validator.test(model, validation_iterator, phase="validation")
 
             self._save_log(epoch, loss_train, loss_val, eval_results)
@@ -58,7 +58,7 @@ class Trainer(object):
             input, label = batch
 
             self.optimizer.zero_grad()
-            logits = model(input)
+            logits = model(input.to(torch.device(args.device)))
             loss = model.loss(logits, label.view(len(label)))
             loss_list.append(loss.detach())
             loss.backward()
@@ -128,7 +128,7 @@ class Tester(object):
                 attn_weights_list.append(attn_weights.detach())
             else:
                 with torch.no_grad():
-                    prediction = model(input)
+                    prediction = model(input.to(torch.device(args.device)))
 
             output_list.append(prediction.detach())
             truth_list.append(label.detach())
