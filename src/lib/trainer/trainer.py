@@ -24,7 +24,8 @@ class Trainer(object):
     def train(self, model, train_iterator, validation_iterator):
         tester_args = {
             'save_dir' : self.save_dir,
-            'file_list' : None
+            'file_list' : None,
+            'device' : self.device
             }
         validator = Tester(**tester_args)
         start = time.time()
@@ -60,7 +61,7 @@ class Trainer(object):
             self.optimizer.zero_grad()
             logits = model(input.to(torch.device(self.device)))
             loss = model.loss(logits, label.to(torch.device(self.device)).view(len(label)))
-            loss_list.append(loss.detach())
+            loss_list.append(loss.to(torch.device('cpu')).detach())
             loss.backward()
             self.optimizer.step()
         loss_train = float(abs(np.mean(loss_list)))
@@ -108,6 +109,7 @@ class Tester(object):
     def __init__(self, **kwargs):
         self.save_dir = kwargs['save_dir']
         self.file_list = kwargs['file_list']
+        self.device = kwargs['device']
 
     def test(self, model, data_iter, phase="test"):
 
@@ -124,16 +126,16 @@ class Tester(object):
 
             if phase == 'test':
                 with torch.no_grad():
-                    prediction, attn_weights = model(input)
+                    prediction, attn_weights = model(input.to(torch.device(self.device)))
                 attn_weights_list.append(attn_weights.detach())
             else:
                 with torch.no_grad():
                     prediction = model(input.to(torch.device(self.device)))
 
-            output_list.append(prediction.detach())
+            output_list.append(prediction.to(torch.device('cpu')).detach())
             truth_list.append(label.detach())
-            loss = model.loss(prediction, label.view(len(label)))
-            loss_list.append(loss.detach())
+            loss = model.loss(prediction, label.to(torch.device(self.device)).view(len(label)))
+            loss_list.append(loss.to(torch.device('cpu')).detach())
 
         # evaluate
         eval_results = self.evaluate(output_list, truth_list)
