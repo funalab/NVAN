@@ -116,6 +116,10 @@ class MuVAN(nn.Module):
         self.num_layers = num_layers
 
         self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
+
+        # location-based attention
+        self.energy = nn.Linear(hidden_dim * 2, 1)
+
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(2, stride=2)
         self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
@@ -126,7 +130,19 @@ class MuVAN(nn.Module):
         self.loss = lossfun
         self.phase = phase
 
-    # def hybrid_focus_procedure(self, hidden_state):
+    def location_based_attention(self, hidden_matrix):
+        # hidden_matrix: [batch, view, time, dim]
+        e_v = []
+        for v in range(self.input_dim):
+            e_t = []
+            for t in range(hidden_matrix.shape[2] - 1):
+                e_t.append(self.energy(hidden_matrix[:,v,t]).squeeze(1))
+            e_v.append(torch.stack(e_t).permute(1, 0))
+        return torch.stack(e_v).permute(1, 0, 2)
+
+
+    def hybrid_focus_procedure(self, hidden_matrix):
+        print(hidden_matrix)
 
 
     def attention(self, lstm_out, final_state):
@@ -143,23 +159,32 @@ class MuVAN(nn.Module):
         for v in range(self.input_dim):
             lstm_out, (final_hidden_state, _) = self.bgru(input[:,:,v].unsqueeze(2).permute(1, 0, 2))
             lstm_out = lstm_out.permute(1, 0, 2)
-            attn_out, attn_weights = self.attention(lstm_out, final_hidden_state)
-
             hidden_matrix.append(lstm_out.unsqueeze(0))
-            attn_matrix.append(attn_out.unsqueeze(0))
-            attn_weights_matrix.append(attn_weights.unsqueeze(0))
+            # attn_out, attn_weights = self.attention(lstm_out, final_hidden_state)
+            # attn_matrix.append(attn_out.unsqueeze(0))
+            # attn_weights_matrix.append(attn_weights.unsqueeze(0))
 
         # hidden_matrix: [batch, view, time, dim]
         hidden_matrix = torch.cat(hidden_matrix).permute(1, 0, 2, 3)
+        # energy_matrix: [batch, view, time]
+        energy_matrix = self.location_based_attention(hidden_matrix)
+        print(energy_matrix.shape)
+        # attention_matrix: [batch, view, time]
+        attention_matrix = self.hybrid_focus_procedure(energy_matrix)
+
+
         # attn_matrix: [batch, view, dim]
         attn_matrix = torch.cat(attn_matrix).permute(1, 0, 2)
         # attn_weights_matrix: [batch, view, time]
         attn_weights_matrix = torch.cat(attn_weights_matrix).permute(1, 0, 2)
+
         # print(hidden_matrix.shape)
         # print(attn_matrix.shape)
         # print(attn_weights_matrix.shape)
 
+        context_matrix = torch.mul(attn_matrix, hidden_matrix[:,:,-1,:])
         cat_matrix = torch.cat([hidden_matrix[:,:,-1,:], attn_matrix]).view(hidden_matrix.shape[0], 2, self.input_dim, self.hidden_dim * 2)
+
         logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
         logit = self.pool(self.relu(self.attn_fusion_2(logit)))
         logit = logit.view(logit.size()[0], -1)
