@@ -119,6 +119,7 @@ class MuVAN(nn.Module):
 
         # location-based attention
         self.energy = nn.Linear(hidden_dim * 2, 1)
+        self.sharpening_factor = 0.1
 
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(2, stride=2)
@@ -141,9 +142,21 @@ class MuVAN(nn.Module):
         return torch.stack(e_v).permute(1, 0, 2)
 
 
-    def hybrid_focus_procedure(self, hidden_matrix):
-        print(hidden_matrix)
-
+    def hybrid_focus_procedure(self, energy_matrix):
+        e_plus = self.relu(energy_matrix)
+        beta_top = torch.sum(e_plus, dim=1)
+        # beta: [time, batch]
+        beta = torch.div(beta_top.permute(1, 0), torch.sum(beta_top, dim=1))
+        # sigmoid: [batch, view, time]
+        sigmoid = torch.sigmoid(energy_matrix)
+        # e_hat: [view, time, batch]
+        e_hat = torch.div(sigmoid.permute(1, 2, 0), torch.sum(sigmoid, dim=1).permute(1, 0))
+        e_hat = torch.mul(e_hat, beta)
+        # e_exp: [view, time, batch]
+        e_exp = torch.exp(e_hat * self.sharpening_factor)
+        # attention: [batch, view, time]
+        attention_matrix = torch.div(e_exp, torch.sum(torch.sum(e_exp, dim=0), dim=0)).permute(2, 0, 1)
+        return attention_matrix
 
     def attention(self, lstm_out, final_state):
         # final_state = final_state.transpose(0, 1).transpose(1, 2)
@@ -166,11 +179,13 @@ class MuVAN(nn.Module):
 
         # hidden_matrix: [batch, view, time, dim]
         hidden_matrix = torch.cat(hidden_matrix).permute(1, 0, 2, 3)
+        print('hidden_matrix: {}'.format(hidden_matrix.shape))
         # energy_matrix: [batch, view, time]
         energy_matrix = self.location_based_attention(hidden_matrix)
-        print(energy_matrix.shape)
+        print('energy_matrix: {}'.format(energy_matrix.shape))
         # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
+        print('attention_matrix: {}'.format(attention_matrix.shape))
 
 
         # attn_matrix: [batch, view, dim]
