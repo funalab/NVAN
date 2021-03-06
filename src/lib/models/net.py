@@ -156,6 +156,12 @@ class MuVAN(nn.Module):
         attention_matrix = torch.div(e_exp, torch.sum(torch.sum(e_exp, dim=0), dim=0)).permute(2, 0, 1)
         return attention_matrix
 
+
+    def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
+        context_matrix = torch.matmul(attention_matrix.unsqueeze(2), hidden_matrix[:,:,:-1]).squeeze(2)
+        return context_matrix
+
+
     def attention(self, lstm_out, final_state):
         # final_state = final_state.transpose(0, 1).transpose(1, 2)
         final_state = final_state.permute(1, 2, 0)
@@ -184,7 +190,9 @@ class MuVAN(nn.Module):
         # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
         print('attention_matrix: {}'.format(attention_matrix.shape))
-
+        # context_matrix: [batch, view, dim]
+        context_matrix = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
+        print('context_matrix: {}'.format(context_matrix.shape))
 
         # attn_matrix: [batch, view, dim]
         attn_matrix = torch.cat(attn_matrix).permute(1, 0, 2)
