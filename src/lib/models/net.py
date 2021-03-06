@@ -143,15 +143,13 @@ class MuVAN(nn.Module):
 
 
     def hybrid_focus_procedure(self, energy_matrix):
-        e_plus = self.relu(energy_matrix)
-        beta_top = torch.sum(e_plus, dim=1)
+        beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [time, batch]
         beta = torch.div(beta_top.permute(1, 0), torch.sum(beta_top, dim=1))
-        # sigmoid: [batch, view, time]
-        sigmoid = torch.sigmoid(energy_matrix)
+        # e_sig: [batch, view, time]
+        e_sig = torch.sigmoid(energy_matrix)
         # e_hat: [view, time, batch]
-        e_hat = torch.div(sigmoid.permute(1, 2, 0), torch.sum(sigmoid, dim=1).permute(1, 0))
-        e_hat = torch.mul(e_hat, beta)
+        e_hat = torch.mul(torch.div(e_sig.permute(1, 2, 0), torch.sum(e_sig, dim=1).permute(1, 0)), beta)
         # e_exp: [view, time, batch]
         e_exp = torch.exp(e_hat * self.sharpening_factor)
         # attention: [batch, view, time]
