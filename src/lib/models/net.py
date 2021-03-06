@@ -141,7 +141,6 @@ class MuVAN(nn.Module):
             e_v.append(torch.stack(e_t).permute(1, 0))
         return torch.stack(e_v).permute(1, 0, 2)
 
-
     def hybrid_focus_procedure(self, energy_matrix):
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [time, batch]
@@ -156,11 +155,9 @@ class MuVAN(nn.Module):
         attention_matrix = torch.div(e_exp, torch.sum(torch.sum(e_exp, dim=0), dim=0)).permute(2, 0, 1)
         return attention_matrix
 
-
     def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
         context_matrix = torch.matmul(attention_matrix.unsqueeze(2), hidden_matrix[:,:,:-1]).squeeze(2)
         return context_matrix
-
 
     def attention(self, lstm_out, final_state):
         # final_state = final_state.transpose(0, 1).transpose(1, 2)
@@ -183,28 +180,23 @@ class MuVAN(nn.Module):
 
         # hidden_matrix: [batch, view, time, dim]
         hidden_matrix = torch.cat(hidden_matrix).permute(1, 0, 2, 3)
-        print('hidden_matrix: {}'.format(hidden_matrix.shape))
+        # print('hidden_matrix: {}'.format(hidden_matrix.shape))
+
         # energy_matrix: [batch, view, time]
         energy_matrix = self.location_based_attention(hidden_matrix)
-        print('energy_matrix: {}'.format(energy_matrix.shape))
+        # print('energy_matrix: {}'.format(energy_matrix.shape))
+
         # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
-        print('attention_matrix: {}'.format(attention_matrix.shape))
+        # print('attention_matrix: {}'.format(attention_matrix.shape))
+
         # context_matrix: [batch, view, dim]
         context_matrix = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
-        print('context_matrix: {}'.format(context_matrix.shape))
+        # print('context_matrix: {}'.format(context_matrix.shape))
 
-        # attn_matrix: [batch, view, dim]
-        attn_matrix = torch.cat(attn_matrix).permute(1, 0, 2)
-        # attn_weights_matrix: [batch, view, time]
-        attn_weights_matrix = torch.cat(attn_weights_matrix).permute(1, 0, 2)
-
-        # print(hidden_matrix.shape)
-        # print(attn_matrix.shape)
-        # print(attn_weights_matrix.shape)
-
-        context_matrix = torch.mul(attn_matrix, hidden_matrix[:,:,-1,:])
-        cat_matrix = torch.cat([hidden_matrix[:,:,-1,:], attn_matrix]).view(hidden_matrix.shape[0], 2, self.input_dim, self.hidden_dim * 2)
+        # cat_matrix: [batch, channel, view, dim]
+        cat_matrix = torch.cat([hidden_matrix[:,:,-1,:], context_matrix]).view(hidden_matrix.shape[0], 2, self.input_dim, self.hidden_dim * 2)
+        # print('cat_matrix: {}'.format(cat_matrix.shape))
 
         logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
         logit = self.pool(self.relu(self.attn_fusion_2(logit)))
@@ -212,11 +204,9 @@ class MuVAN(nn.Module):
         logit = self.affine(logit)
 
         if self.phase == 'test':
-            return logit, attn_weights_matrix
+            return logit, attention_matrix
         else:
             return logit
-
-
 
 
 
