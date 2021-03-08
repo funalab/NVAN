@@ -131,6 +131,16 @@ class MuVAN(nn.Module):
         self.loss = lossfun
         self.phase = phase
 
+    def location_based_attention_list(self, hidden_matrix):
+        # hidden_matrix: [batch, view, time, dim]
+        e_v = []
+        for v in range(self.input_dim):
+            e_t = []
+            for t in range(hidden_matrix.shape[2] - 1):
+                e_t.append(self.energy(hidden_matrix[:,v,t]).squeeze(1))
+            e_v.append(torch.stack(e_t).permute(1, 0))
+        return torch.stack(e_v).permute(1, 0, 2)
+
     def location_based_attention(self, hidden_matrix):
         # hidden_matrix: [batch, view, time, dim]
         e_v = []
@@ -171,12 +181,14 @@ class MuVAN(nn.Module):
     def forward(self, input):
         hidden_matrix, attn_matrix, attn_weights_matrix = [], [], []
         for v in range(self.input_dim):
+            # lstm_out: [batch, time, dim]
             lstm_out, (final_hidden_state, _) = self.bgru(input[:,:,v].unsqueeze(2).permute(1, 0, 2))
-            lstm_out = lstm_out.permute(1, 0, 2)
-            hidden_matrix.append(lstm_out.unsqueeze(0))
-            # attn_out, attn_weights = self.attention(lstm_out, final_hidden_state)
-            # attn_matrix.append(attn_out.unsqueeze(0))
-            # attn_weights_matrix.append(attn_weights.unsqueeze(0))
+            hidden_matrix.append(lstm_out.permute(1, 0, 2).unsqueeze(0))
+            # 
+            # lstm_out と final_hidden_stateは同じか検証
+            # list形式でappendしてGPU上での動作は問題ないか検証 (こことlocal-based attention)
+            # `RuntimeError: cuDNN error: CUDNN_STATUS_EXECUTION_FAILED` の原因を究明
+            # 
 
         # hidden_matrix: [batch, view, time, dim]
         hidden_matrix = torch.cat(hidden_matrix).permute(1, 0, 2, 3)
