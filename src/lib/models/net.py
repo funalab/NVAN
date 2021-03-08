@@ -179,7 +179,7 @@ class MuVAN(nn.Module):
         return new_hidden_state, soft_attn_weights
 
     def forward(self, input):
-        hidden_matrix, attn_matrix, attn_weights_matrix = [], [], []
+        hidden_matrix = []
         for v in range(self.input_dim):
             # lstm_out: [batch, time, dim]
             lstm_out, (final_hidden_state, _) = self.bgru(input[:,:,v].unsqueeze(2).permute(1, 0, 2))
