@@ -117,10 +117,52 @@ def main(argv=None):
             momentum=args.momentum,
             weight_decay=args.weight_decay
             )
+    elif args.optimizer == 'Adadelta':
+        optimizer = optim.Adadelta(
+            params=classifier.parameters(),
+            lr=args.lr,
+            weight_decay=args.weight_decay
+            )
+    elif args.optimizer == 'Adagrad':
+        optimizer = optim.Adagrad(
+            params=classifier.parameters(),
+            lr=args.lr,
+            weight_decay=args.weight_decay
+            )
     elif args.optimizer == 'Adam':
         optimizer = optim.Adam(
             params=classifier.parameters(),
             lr=args.lr,
+            weight_decay=args.weight_decay
+            )
+    elif args.optimizer == 'AdamW':
+        optimizer = optim.AdamW(
+            params=classifier.parameters(),
+            lr=args.lr,
+            weight_decay=args.weight_decay
+            )
+    elif args.optimizer == 'SparseAdam':
+        optimizer = optim.SparseAdam(
+            params=classifier.parameters(),
+            lr=args.lr
+            )
+    elif args.optimizer == 'Adamax':
+        optimizer = optim.Adamax(
+            params=classifier.parameters(),
+            lr=args.lr,
+            weight_decay=args.weight_decay
+            )
+    elif args.optimizer == 'ASGD':
+        optimizer = optim.ASGD(
+            params=classifier.parameters(),
+            lr=args.lr,
+            weight_decay=args.weight_decay
+            )
+    elif args.optimizer == 'RMSprop':
+        optimizer = optim.RMSprop(
+            params=classifier.parameters(),
+            lr=args.lr,
+            momentum=args.momentum,
             weight_decay=args.weight_decay
             )
     else:
