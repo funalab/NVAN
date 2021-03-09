@@ -118,7 +118,21 @@ class MuVAN(nn.Module):
         self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
 
         # location-based attention
-        self.energy = nn.Linear(hidden_dim * 2, 1)
+        self.w_e = nn.Linear(hidden_dim * 2, 1)
+
+        # context-based attention
+        self.k = 128
+        self.w_a = nn.Linear(self.k, input_dim)
+        self.w_b = nn.Linear(self.k, input_dim)
+        self.w_c = nn.Linear(self.k, input_dim)
+        self.w_d = nn.Linear(input_dim, input_dim)
+        # Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True, padding_mode='zeros')
+        self.w_sc_i = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
+        self.w_sc_t = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
+        self.w_cc_1 = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
+        self.w_cc_2 = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
+
+        # hybrid_focus_procedure
         self.sharpening_factor = 0.1
 
         self.relu = nn.ReLU()
@@ -131,15 +145,6 @@ class MuVAN(nn.Module):
         self.loss = lossfun
         self.phase = phase
 
-    def location_based_attention_list(self, hidden_matrix):
-        # hidden_matrix: [batch, view, time, dim]
-        e_v = []
-        for v in range(self.input_dim):
-            e_t = []
-            for t in range(hidden_matrix.shape[2] - 1):
-                e_t.append(self.energy(hidden_matrix[:,v,t]).squeeze(1))
-            e_v.append(torch.stack(e_t).permute(1, 0))
-        return torch.stack(e_v).permute(1, 0, 2)
 
     def location_based_attention(self, hidden_matrix):
         # hidden_matrix: [batch, view, time, dim]
@@ -147,9 +152,39 @@ class MuVAN(nn.Module):
         for v in range(self.input_dim):
             e_t = []
             for t in range(hidden_matrix.shape[2] - 1):
-                e_t.append(self.energy(hidden_matrix[:,v,t]).squeeze(1))
+                e_t.append(self.w_e(hidden_matrix[:,v,t]).squeeze(1))
             e_v.append(torch.stack(e_t).permute(1, 0))
         return torch.stack(e_v).permute(1, 0, 2)
+
+    def context_based_attention(self, hidden_matrix):
+        # hidden_matrix: [batch, view, time, dim]
+        ''' local self-context '''
+        h_t = []
+        for v in range(self.input_dim):
+            h_t.append(self.w_sc_t(hidden_matrix[:,v,-1].view(hidden_matrix.shape[0],1,1,-1)))
+        # h_t: [batch, 1, 1, k]
+        h_t = torch.sum(torch.stack(h_t), dim=0)
+        # print('h_t shape: {}'.format(h_t.shape))
+
+        e_ti = []
+        for t in range(hidden_matrix.shape[2] - 1):
+            ''' target self-context '''
+            h_i, h_ti = [], []
+            for v in range(self.input_dim):
+                h_i.append(self.w_sc_i(hidden_matrix[:,v,t].view(hidden_matrix.shape[0],1,1,-1)))
+            h_i = torch.sum(torch.stack(h_i), dim=0)
+            # print('h_i shape: {}'.format(h_i.shape))
+
+            ''' cross-context '''
+            h_ti = \
+                self.w_cc_1(hidden_matrix[:,v,-1].view(hidden_matrix.shape[0],1,1,-1)) + \
+                self.w_cc_2(hidden_matrix[:,v,t].view(hidden_matrix.shape[0],1,1,-1))
+            # print('h_ti shape: {}'.format(h_ti.shape))
+
+            e_ti.append(torch.tanh(self.w_a(h_t) + self.w_b(h_i) + self.w_c(h_ti)))
+        e_ti = torch.stack(e_ti).squeeze().permute(1, 2, 0)
+        print('e_ti shape: {}'.format(e_ti.shape))
+        return e_ti
 
     def hybrid_focus_procedure(self, energy_matrix):
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
@@ -184,18 +219,14 @@ class MuVAN(nn.Module):
             # lstm_out: [batch, time, dim]
             lstm_out, (final_hidden_state, _) = self.bgru(input[:,:,v].unsqueeze(2).permute(1, 0, 2))
             hidden_matrix.append(lstm_out.permute(1, 0, 2).unsqueeze(0))
-            # 
-            # lstm_out と final_hidden_stateは同じか検証
-            # list形式でappendしてGPU上での動作は問題ないか検証 (こことlocal-based attention)
-            # `RuntimeError: cuDNN error: CUDNN_STATUS_EXECUTION_FAILED` の原因を究明
-            # 
 
         # hidden_matrix: [batch, view, time, dim]
         hidden_matrix = torch.cat(hidden_matrix).permute(1, 0, 2, 3)
         # print('hidden_matrix: {}'.format(hidden_matrix.shape))
 
         # energy_matrix: [batch, view, time]
-        energy_matrix = self.location_based_attention(hidden_matrix)
+        # energy_matrix = self.location_based_attention(hidden_matrix)
+        energy_matrix = self.context_based_attention(hidden_matrix)
         # print('energy_matrix: {}'.format(energy_matrix.shape))
 
         # attention_matrix: [batch, view, time]
