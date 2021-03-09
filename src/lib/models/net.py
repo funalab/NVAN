@@ -117,6 +117,8 @@ class MuVAN(nn.Module):
 
         self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
 
+        self.multi_view_attention = self.context_based_attention
+
         # location-based attention
         self.w_e = nn.Linear(hidden_dim * 2, 1)
 
@@ -183,7 +185,7 @@ class MuVAN(nn.Module):
 
             e_ti.append(torch.tanh(self.w_a(h_t) + self.w_b(h_i) + self.w_c(h_ti)))
         e_ti = torch.stack(e_ti).squeeze().permute(1, 2, 0)
-        print('e_ti shape: {}'.format(e_ti.shape))
+        # print('e_ti shape: {}'.format(e_ti.shape))
         return e_ti
 
     def hybrid_focus_procedure(self, energy_matrix):
@@ -225,8 +227,7 @@ class MuVAN(nn.Module):
         # print('hidden_matrix: {}'.format(hidden_matrix.shape))
 
         # energy_matrix: [batch, view, time]
-        # energy_matrix = self.location_based_attention(hidden_matrix)
-        energy_matrix = self.context_based_attention(hidden_matrix)
+        energy_matrix = self.multi_view_attention(hidden_matrix)
         # print('energy_matrix: {}'.format(energy_matrix.shape))
 
         # attention_matrix: [batch, view, time]
