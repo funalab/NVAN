@@ -173,6 +173,20 @@ def main(argv=None):
     save_dir = args.save_dir + '_' + str(current_datetime)
     os.makedirs(save_dir, exist_ok=True)
 
+    ''' Graph Visualization '''
+    if eval(args.graph):
+        print('Making the graph of model.', end='')
+        from torchviz import make_dot
+        print('.', end='')
+        dummy_x, _ = train_dataset.__getitem__(0)
+        dummy_y = classifier(dummy_x.unsqueeze(0))
+        print('.', end='')
+        dot = make_dot(dummy_y.mean(), params=dict(classifier.named_parameters()))
+        dot.format = 'png'
+        print('.', end='')
+        dot.render(os.path.join(save_dir, 'graph'))
+        print('Success!')
+
     # Training
     trainer_args = {
         'optimizer' : optimizer,
