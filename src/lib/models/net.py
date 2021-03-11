@@ -120,7 +120,7 @@ class MuVAN(nn.Module):
 
         self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
 
-        self.multi_view_attention = self.context_based_attention
+        self.multi_view_attention = self.context_based_attention #self.location_based_attention
 
         # location-based attention
         self.w_e = nn.Linear(hidden_dim * 2, 1)
