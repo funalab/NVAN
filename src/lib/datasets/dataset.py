@@ -20,7 +20,7 @@ class EmbryoDataset(Dataset):
         return len(self.file_list)
 
     def get_input(self, i):
-        input = csv_loader(os.path.join(self.root, 'ts_criteria', self.file_list[i], 'criteria.csv'))
+        input = csv_loader(os.path.join(self.root, 'input', self.file_list[i], 'criteria.csv'))
         return input
 
     def get_label(self, i):
