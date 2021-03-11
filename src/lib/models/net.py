@@ -29,7 +29,8 @@ class LSTMClassifier(nn.Module):
         self.loss = lossfun
 
     def forward(self, input):
-        lstm_out, _ = self.lstm(input.view(np.shape(input)[1], np.shape(input)[0], -1))
+        print(input.shape)
+        lstm_out, _ = self.lstm(input.view(input.shape[1], input.shape[0], -1))
         tag_space = self.hidden2tag(lstm_out[-1, :, :])
         tag_scores = self.softmax(tag_space)
         return tag_scores
@@ -50,11 +51,8 @@ class LSTMAttentionClassifier(nn.Module):
         super(LSTMAttentionClassifier, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
-        # self.word_embed = nn.Embedding(input_dim, embed_dim)
-        # self.lstm = nn.LSTM(embed_dim, hidden_dim, dropout=dropout)
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, dropout=dropout, bidirectional=False)
         self.hidden2tag = nn.Linear(hidden_dim, num_classes)
-        # self.hidden2tag = nn.Linear(hidden_dim*2, num_classes)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
@@ -146,7 +144,6 @@ class MuVAN(nn.Module):
         self.pool = nn.MaxPool2d(2, stride=2)
         self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
         self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
-        # self.affine = nn.Linear(hidden_dim * input_dim * 32 * 2, num_classes)
         self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
@@ -212,15 +209,6 @@ class MuVAN(nn.Module):
     def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
         context_matrix = torch.matmul(attention_matrix.unsqueeze(2), hidden_matrix[:,:,:-1]).squeeze(2)
         return context_matrix
-
-    def attention(self, lstm_out, final_state):
-        # final_state = final_state.transpose(0, 1).transpose(1, 2)
-        final_state = final_state.permute(1, 2, 0)
-        hidden = final_state.reshape(lstm_out.shape[0], -1)
-        attn_weights = torch.bmm(lstm_out, hidden.unsqueeze(2)).squeeze(2)
-        soft_attn_weights = F.softmax(attn_weights, 1)
-        new_hidden_state = torch.bmm(lstm_out.transpose(1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
-        return new_hidden_state, soft_attn_weights
 
     def forward(self, input):
         hidden_matrix = []
