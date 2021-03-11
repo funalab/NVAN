@@ -9,6 +9,7 @@ import copy
 import math
 import os
 sys.path.append(os.getcwd())
+import json
 import numpy as np
 import pytz
 from glob import glob
@@ -207,6 +208,9 @@ def main(argv=None):
 
             with open(path_log, 'a') as f:
                 f.write('tp {0:03d}: {1}\n'.format(tp, criteria_current))
+
+        with open(os.path.join(save_dir, 'criteria.json'), 'w') as f:
+            json.dump(criteria_value, f, indent=4)
 
 if __name__ == '__main__':
     main()
