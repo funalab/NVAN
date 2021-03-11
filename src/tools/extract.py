@@ -128,7 +128,7 @@ def main(argv=None):
 
         with open(os.path.join(save_dir, 'criteria.csv'), 'w') as f:
             c = csv.writer(f)
-            c.writerow(criteria_list)
+            c.writerow(['time_point'] + criteria_list)
 
         tp = 0
         for pi in path_images:
