@@ -16,3 +16,10 @@
 % python src/tools/train.py --conf_file confs/train_muvan.cfg
 ```
 学習の結果は、`results` 以下に生成される `log` ファイルを参照。
+
+
+
+### Graph可視化
+
+1. trainのconfig fileにある`Graph`を`True`にしてtrain.pyを実行
+2. https://netron.app/ にアクセスして `.onnx`ファイルをアップロード
