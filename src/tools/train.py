@@ -176,16 +176,25 @@ def main(argv=None):
     ''' Graph Visualization '''
     if eval(args.graph):
         print('Making the graph of model.', end='')
-        from torchviz import make_dot
-        print('.', end='')
         dummy_x, _ = train_dataset.__getitem__(0)
-        dummy_y = classifier(dummy_x.unsqueeze(0))
+        input_names = ['input']
         print('.', end='')
-        dot = make_dot(dummy_y.mean(), params=dict(classifier.named_parameters()))
-        dot.format = 'png'
+        output_names = ['output']
         print('.', end='')
-        dot.render(os.path.join(save_dir, 'graph'))
+        torch.onnx.export(classifier, dummy_x.unsqueeze(0), os.path.join(save_dir, 'graph.onnx'), verbose=True, input_names=input_names, output_names=output_names)
         print('Success!')
+
+        # print('Making the graph of model.', end='')
+        # from torchviz import make_dot
+        # print('.', end='')
+        # dummy_x, _ = train_dataset.__getitem__(0)
+        # dummy_y = classifier(dummy_x.unsqueeze(0))
+        # print('.', end='')
+        # dot = make_dot(dummy_y.mean(), params=dict(classifier.named_parameters()))
+        # dot.format = 'png'
+        # print('.', end='')
+        # dot.render(os.path.join(save_dir, 'graph'))
+        # print('Success!')
 
     # Training
     trainer_args = {

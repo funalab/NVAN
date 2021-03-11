@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import pad_sequence
 def csv_loader(path):
     with open(path, 'r') as f:
         reader = csv.reader(f)
-        vec = [row for row in reader]
+        vec = [row[1:] for row in reader]
         vec.pop(0)
         vec = np.array(vec).astype(np.float32)
     return vec
