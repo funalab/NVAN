@@ -25,4 +25,4 @@
 2. https://netron.app/ にアクセスして `.onnx`ファイルをアップロード
 
 #### LSTMMultiAttentionClassifier
-![LSTM Multi-Attention Classifier](https://gitlab.com/funalab/embryo_classification/-/images/graph_LSTMMultiAttentionClassifier.png)
+![LSTM Multi-Attention Classifier](https://gitlab.com/funalab/embryo_classification/-/blob/master/images/graph_LSTMMultiAttentionClassifier.png)
