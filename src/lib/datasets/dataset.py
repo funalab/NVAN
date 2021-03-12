@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import random
 import torch
 from torch.utils.data import Dataset
 from src.lib.datasets.data_loader import csv_loader, csv_loader_criteria_list
@@ -22,7 +23,7 @@ class EmbryoDataset(Dataset):
 
     def get_input(self, i):
         input = csv_loader(os.path.join(self.root, 'input', self.file_list[i], 'criteria.csv'))
-        return self.normalization(input)
+        return self.normalization(self.transform(input))
 
     def get_label(self, i):
         if self.file_list[i] in self.born_list:
@@ -35,6 +36,9 @@ class EmbryoDataset(Dataset):
 
     def normalization(self, vec):
         return np.array([(v - np.mean(v)) / np.std(v) for v in vec]).astype(np.float32)
+
+    def transform(self, vec):
+        return np.array(vec[int(random.uniform(0, 20)):]).astype(np.float32)
 
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
