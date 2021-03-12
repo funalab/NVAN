@@ -25,7 +25,8 @@ class Trainer(object):
         tester_args = {
             'save_dir' : self.save_dir,
             'file_list' : None,
-            'device' : self.device
+            'device' : self.device,
+            'criteria_list' : None
             }
         validator = Tester(**tester_args)
         start = time.time()
@@ -42,7 +43,8 @@ class Trainer(object):
             self._save_log(epoch, loss_train, loss_val, eval_results)
 
             if self.best_eval_result(eval_results):
-                torch.save(model.to('cpu').state_dict(), os.path.join(self.save_dir, 'best_model'))
+                torch.save(model.to('cpu'), os.path.join(self.save_dir, 'best_model'))
+                model.to(torch.device(self.device))
                 best_epoch = epoch
                 print("Saved better model selected by validation.")
         with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
