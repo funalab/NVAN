@@ -77,6 +77,99 @@ class LSTMAttentionClassifier(nn.Module):
             return tag_scores
 
 
+class LSTMMultiAttentionClassifier(nn.Module):
+    """
+    Multi-view Attention Network for Multivariate Temporal Data
+
+    Parameters
+    ----------
+    input_dim : dimention of multivariable
+    embed_dim : hidden size
+    num_classes : 
+    num_layers : number of hidden layers. Default: 1
+    hidden_dim : 
+    dropout : dropout rate. Default: 0.5
+    lossfun : 
+
+    Inputs
+    ------
+    input: tensor, shaped [batch, max_step, input_size]
+
+    Outputs
+    -------
+    output: tensor, shaped [batch, max_step, num_directions * hidden_size],
+         tensor containing the output features (h_t) from the last layer
+         of the LSTM, for each t.
+    """
+
+    def __init__(
+            self,
+            input_dim,
+            embed_dim,
+            num_classes,
+            num_layers,
+            hidden_dim,
+            dropout,
+            lossfun,
+            phase='train'
+            ):
+        super(LSTMMultiAttentionClassifier, self).__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+
+        self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
+        self.relu = nn.ReLU()
+        self.pool = nn.MaxPool2d(2, stride=2)
+        self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
+        self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
+        self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+        self.softmax = nn.Softmax(dim=1)
+        self.loss = lossfun
+        self.phase = phase
+
+
+    def attention(self, lstm_out, final_state):
+        final_state = final_state[-2:].permute(1, 2, 0)
+        hidden = final_state.reshape(lstm_out.shape[0], -1)
+        attn_weights = torch.bmm(lstm_out, hidden.unsqueeze(2)).squeeze(2)
+        soft_attn_weights = F.softmax(attn_weights, 1)
+        new_hidden_state = torch.bmm(lstm_out.transpose(1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
+        return new_hidden_state, soft_attn_weights
+
+    def forward(self, input):
+        hidden_matrix, attn_matrix, attn_weights_matrix = [], [], []
+        for v in range(self.input_dim):
+            lstm_out, (final_hidden_state, _) = self.bgru(input[:,:,v].unsqueeze(2).permute(1, 0, 2))
+            lstm_out = lstm_out.permute(1, 0, 2)
+            attn_out, attn_weights = self.attention(lstm_out, final_hidden_state)
+
+            hidden_matrix.append(lstm_out.unsqueeze(0))
+            attn_matrix.append(attn_out.unsqueeze(0))
+            attn_weights_matrix.append(attn_weights.unsqueeze(0))
+
+        # hidden_matrix: [batch, view, time, dim]
+        hidden_matrix = torch.cat(hidden_matrix).permute(1, 0, 2, 3)
+        # attn_matrix: [batch, view, dim]
+        attn_matrix = torch.cat(attn_matrix).permute(1, 0, 2)
+        # attn_weights_matrix: [batch, view, time]
+        attn_weights_matrix = torch.cat(attn_weights_matrix).permute(1, 0, 2)
+        # print(hidden_matrix.shape)
+        # print(attn_matrix.shape)
+        # print(attn_weights_matrix.shape)
+
+        cat_matrix = torch.cat([hidden_matrix[:,:,-1,:], attn_matrix]).view(hidden_matrix.shape[0], 2, self.input_dim, self.hidden_dim * 2)
+        logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
+        logit = self.pool(self.relu(self.attn_fusion_2(logit)))
+        logit = logit.view(logit.size()[0], -1)
+        logit = self.affine(logit)
+
+        if self.phase == 'test':
+            return logit, attn_weights_matrix
+        else:
+            return logit
+
+
 class MuVAN(nn.Module):
     """
     Multi-view Attention Network for Multivariate Temporal Data
