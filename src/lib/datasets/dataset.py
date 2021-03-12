@@ -36,7 +36,6 @@ class EmbryoDataset(Dataset):
     def normalization(self, vec):
         return np.array([(v - np.mean(v)) / np.std(v) for v in vec]).astype(np.float32)
 
-
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
         # if self.transform:
