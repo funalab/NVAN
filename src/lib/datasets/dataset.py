@@ -2,7 +2,7 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from src.lib.datasets.data_loader import csv_loader
+from src.lib.datasets.data_loader import csv_loader, csv_loader_criteria_list
 
 class EmbryoDataset(Dataset):
     def __init__(self, transform=None, root=None, split_list=None, train=True):
@@ -15,6 +15,7 @@ class EmbryoDataset(Dataset):
             self.born_list = [line.rstrip() for line in f]
         with open(os.path.join(self.root, 'labels', 'abort.txt'), 'r') as f:
             self.abort_list = [line.rstrip() for line in f]
+        self.criteria_list = csv_loader_criteria_list(self.born_list[0])
 
     def __len__(self):
         return len(self.file_list)

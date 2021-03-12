@@ -42,7 +42,7 @@ class Trainer(object):
             self._save_log(epoch, loss_train, loss_val, eval_results)
 
             if self.best_eval_result(eval_results):
-                torch.save(model, os.path.join(self.save_dir, 'best_model'))
+                torch.save(model.to('cpu').state_dict(), os.path.join(self.save_dir, 'best_model'))
                 best_epoch = epoch
                 print("Saved better model selected by validation.")
         with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
@@ -110,6 +110,7 @@ class Tester(object):
         self.save_dir = kwargs['save_dir']
         self.file_list = kwargs['file_list']
         self.device = kwargs['device']
+        self.criteria_list = kwargs['criteria_list']
 
     def test(self, model, data_iter, phase="test"):
 
@@ -245,7 +246,8 @@ class Tester(object):
         plt.figure()
         plt.imshow(aw, interpolation='nearest', vmin=0, vmax=1, cmap='jet', aspect=20)
         plt.ylim([-0.5, len(aw)-0.5])
-        plt.yticks([i for i in range(0, len(aw))], [i for i in range(len(aw), 0, -1)])
+        plt.yticks([i for i in range(0, len(aw))], self.criteria_list)
+        # plt.yticks([i for i in range(0, len(aw))], [i for i in range(len(aw), 0, -1)])
         plt.xlabel('time point')
         plt.title('pred={0}, gt={1}'.format('born' if y_pred[0][0] == 1 else 'abort', 'born' if y_true[0][0] == 1 else 'abort'))
         plt.colorbar()

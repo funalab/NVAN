@@ -110,7 +110,8 @@ def main(argv=None):
     tester_args = {
         'save_dir' : save_dir,
         'file_list' : test_dataset.file_list,
-        'device' : args.device
+        'device' : args.device,
+        'criteria_list' : test_dataset.criteria_list
         }
     tester = Tester(**tester_args)
     result, _ = tester.test(classifier, test_iterator, phase='test')

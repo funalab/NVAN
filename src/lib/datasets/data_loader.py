@@ -13,6 +13,11 @@ def csv_loader(path):
         vec = np.array(vec).astype(np.float32)
     return vec
 
+def csv_loader_criteria_list(path):
+    with open(path, 'r') as f:
+        reader = csv.reader(f)
+    return np.array(reader[0][1:])
+
 def label_loader(file_list):
     label = []
     for fl in file_list:
