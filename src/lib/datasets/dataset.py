@@ -38,7 +38,7 @@ class EmbryoDataset(Dataset):
         return np.array([(v - np.mean(v)) / np.std(v) for v in vec]).astype(np.float32)
 
     def transform(self, vec):
-        return np.array(vec[int(random.uniform(0, 20)):]).astype(np.float32)
+        return np.array(vec[int(random.uniform(0, 20)):-int(random.uniform(0, 20))]).astype(np.float32)
 
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
