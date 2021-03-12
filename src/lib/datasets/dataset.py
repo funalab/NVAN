@@ -23,7 +23,7 @@ class EmbryoDataset(Dataset):
 
     def get_input(self, i):
         input = csv_loader(os.path.join(self.root, 'input', self.file_list[i], 'criteria.csv'))
-        return self.normalization(self.transform(input))
+        return input
 
     def get_label(self, i):
         if self.file_list[i] in self.born_list:
@@ -42,5 +42,7 @@ class EmbryoDataset(Dataset):
 
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
-
+        if self.train:
+            input = self.transform(input)
+        input = self.normalization(input)
         return torch.tensor(input), torch.tensor(label)
