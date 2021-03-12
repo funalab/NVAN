@@ -27,5 +27,5 @@
 
 #### LSTM Multi-Attention Classifier
 
-![LSTM Multi-Attention Classifier](https://gitlab.com/funalab/embryo_classification/-/raw/images/graph_LSTMMultiAttentionClassifier.png)
+![LSTM Multi-Attention Classifier](https://gitlab.com/funalab/embryo_classification/-/raw/images/images/graph_LSTMMultiAttentionClassifier.png)
 
