@@ -15,7 +15,7 @@ class EmbryoDataset(Dataset):
             self.born_list = [line.rstrip() for line in f]
         with open(os.path.join(self.root, 'labels', 'abort.txt'), 'r') as f:
             self.abort_list = [line.rstrip() for line in f]
-        self.criteria_list = csv_loader_criteria_list(self.born_list[0])
+        self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, 'input', self.file_list[0], 'criteria.csv'))
 
     def __len__(self):
         return len(self.file_list)
