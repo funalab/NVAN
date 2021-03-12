@@ -23,3 +23,6 @@
 
 1. trainのconfig fileにある`Graph`を`True`にしてtrain.pyを実行
 2. https://netron.app/ にアクセスして `.onnx`ファイルをアップロード
+
+#### LSTMMultiAttentionClassifier
+![LSTM Multi-Attention Classifier](https://gitlab.com/funalab/embryo_classification/-/images/graph_LSTMMultiAttentionClassifier.png)
