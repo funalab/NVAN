@@ -22,7 +22,7 @@ class EmbryoDataset(Dataset):
 
     def get_input(self, i):
         input = csv_loader(os.path.join(self.root, 'input', self.file_list[i], 'criteria.csv'))
-        return input
+        return normalization(input)
 
     def get_label(self, i):
         if self.file_list[i] in self.born_list:
@@ -32,6 +32,10 @@ class EmbryoDataset(Dataset):
         else:
             raise ValueError('Unknown file name: {}'.format(self.file_list[i]))
         return label
+
+    def normalization(self, vec):
+        return np.array([(v - np.mean(v)) / np.std(v) for v in vec]).astype(np.float32)
+
 
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
