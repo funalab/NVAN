@@ -16,7 +16,8 @@ def csv_loader(path):
 def csv_loader_criteria_list(path):
     with open(path, 'r') as f:
         reader = csv.reader(f)
-    return np.array(reader[0][1:])
+        vec = [row[1:] for row in reader]
+    return np.array(vec[0])
 
 def label_loader(file_list):
     label = []
