@@ -85,11 +85,11 @@ class LSTMMultiAttentionClassifier(nn.Module):
     ----------
     input_dim : dimention of multivariable
     embed_dim : hidden size
-    num_classes : 
-    num_layers : number of hidden layers. Default: 1
-    hidden_dim : 
-    dropout : dropout rate. Default: 0.5
-    lossfun : 
+    num_classes : number of the output classes
+    num_layers : number of hidden layers
+    hidden_dim : number of unit on the hidden layer
+    dropout : dropout rate
+    lossfun : loss function
 
     Inputs
     ------
@@ -179,11 +179,11 @@ class MuVAN(nn.Module):
     ----------
     input_dim : dimention of multivariable
     embed_dim : hidden size
-    num_classes : 
-    num_layers : number of hidden layers. Default: 1
-    hidden_dim : 
-    dropout : dropout rate. Default: 0.5
-    lossfun : 
+    num_classes : number of the output classes
+    num_layers : number of hidden layers
+    hidden_dim : number of unit on the hidden layer
+    dropout : dropout rate
+    lossfun : loss function
 
     Inputs
     ------
