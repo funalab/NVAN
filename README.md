@@ -29,3 +29,10 @@
 
 ![LSTM Multi-Attention Classifier](https://gitlab.com/funalab/embryo_classification/-/raw/images/images/graph_LSTMMultiAttentionClassifier.png)
 
+
+#### location-based MuVAN
+
+This network is an example of a time point of 10.
+
+![location-based MuVAN](https://gitlab.com/funalab/embryo_classification/-/raw/images/images/graph_location_based_MuVAN.png)
+
