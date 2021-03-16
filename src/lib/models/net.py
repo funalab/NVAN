@@ -235,7 +235,7 @@ class MuVAN(nn.Module):
             self.w_cc_2 = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
 
         # hybrid_focus_procedure
-        self.sharpening_factor = 0.1
+        self.sharpening_factor = 2.0
 
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(2, stride=2)
@@ -291,6 +291,7 @@ class MuVAN(nn.Module):
         return e_ti
 
     def hybrid_focus_procedure(self, energy_matrix):
+        batch, view, time = energy_matrix.shape
         # beta_top: [batch, time]
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [batch, time]
@@ -299,14 +300,17 @@ class MuVAN(nn.Module):
         e_sig = torch.sigmoid(energy_matrix)
         # e_hat_top: [batch, view, time]
         e_hat_top = torch.mul(e_sig, beta.unsqueeze(1))
-        # e_hat: [batchm view, time]
+        # e_hat: [batch, view, time]
         e_hat = torch.div(e_hat_top, torch.sum(e_sig, dim=2).unsqueeze(2))
+        e_hat = torch.mul(e_hat, self.sharpening_factor)
         # e_exp: [batch, view, time]
-        e_exp = torch.exp(torch.mul(e_hat, self.sharpening_factor))
-        # e_exp_bottom: [batch]
-        e_exp_bottom = torch.sum(torch.sum(e_exp, dim=1), dim=1)
-        # attention: [batch, view, time]
-        attention_matrix = torch.div(e_exp, e_exp_bottom.unsqueeze(1).unsqueeze(2))
+        # e_exp = torch.exp(torch.mul(e_hat, self.sharpening_factor))
+        # # e_exp_bottom: [batch]
+        # e_exp_bottom = torch.sum(torch.sum(e_exp, dim=1), dim=1)
+        # # attention: [batch, view, time]
+        # attention_matrix = torch.div(e_exp, e_exp_bottom.unsqueeze(1).unsqueeze(2))
+        attention_matrix = F.softmax(e_hat.view(batch, view*time), dim=1).view(batch, view, time)
+        print(attention_matrix.shape)
         return attention_matrix
 
     def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
