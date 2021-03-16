@@ -291,17 +291,22 @@ class MuVAN(nn.Module):
         return e_ti
 
     def hybrid_focus_procedure(self, energy_matrix):
+        # beta_top: [batch, time]
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
-        # beta: [time, batch]
-        beta = torch.div(beta_top.permute(1, 0), torch.sum(beta_top, dim=1))
+        # beta: [batch, time]
+        beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1))
         # e_sig: [batch, view, time]
         e_sig = torch.sigmoid(energy_matrix)
-        # e_hat: [view, time, batch]
-        e_hat = torch.mul(torch.div(e_sig.permute(1, 2, 0), torch.sum(e_sig, dim=1).permute(1, 0)), beta)
-        # e_exp: [view, time, batch]
-        e_exp = torch.exp(e_hat * self.sharpening_factor)
+        # e_hat_top: [batch, view, time]
+        e_hat_top = torch.mul(e_sig, beta.unsqueeze(1))
+        # e_hat: [batchm view, time]
+        e_hat = torch.div(e_hat_top, torch.sum(e_sig, dim=2).unsqueeze(2))
+        # e_exp: [batch, view, time]
+        e_exp = torch.exp(torch.mul(e_hat, self.sharpening_factor))
+        # e_exp_bottom: [batch]
+        e_exp_bottom = torch.sum(torch.sum(e_exp, dim=1), dim=1)
         # attention: [batch, view, time]
-        attention_matrix = torch.div(e_exp, torch.sum(torch.sum(e_exp, dim=0), dim=0)).permute(2, 0, 1)
+        attention_matrix = torch.div(e_exp, e_exp_bottom.unsqueeze(1).unsqueeze(2))
         return attention_matrix
 
     def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
@@ -326,7 +331,7 @@ class MuVAN(nn.Module):
         hidden_matrix = torch.stack(hidden_matrix).permute(1, 0, 2, 3)
         # energy_matrix: [batch, view, time]
         energy_matrix = self.multi_view_attention(hidden_matrix)
-        # # attention_matrix: [batch, view, time]
+        # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
         # context_matrix: [batch, view, dim]
         logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
