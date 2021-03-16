@@ -327,10 +327,9 @@ class MuVAN(nn.Module):
         # energy_matrix: [batch, view, time]
         energy_matrix = self.multi_view_attention(hidden_matrix)
         # # attention_matrix: [batch, view, time]
-        # attention_matrix = self.hybrid_focus_procedure(energy_matrix)
+        attention_matrix = self.hybrid_focus_procedure(energy_matrix)
         # context_matrix: [batch, view, dim]
-        # logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
-        logit = self.attentional_feature_fusion(hidden_matrix, energy_matrix)
+        logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
 
         if self.phase == 'test':
             return logit, attention_matrix
