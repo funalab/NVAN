@@ -320,8 +320,7 @@ class MuVAN(nn.Module):
         cat_matrix = torch.stack([hidden_matrix[:,:,-1,:], context_matrix]).permute(1, 0, 2, 3)
         logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
         logit = self.pool(self.relu(self.attn_fusion_2(logit)))
-        logit = logit.view(logit.size()[0], -1)
-        logit = self.affine(logit)
+        logit = self.affine(logit.view(logit.size()[0], -1))
         return logit
 
     def forward(self, input):
