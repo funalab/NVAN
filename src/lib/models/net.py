@@ -266,7 +266,6 @@ class MuVAN(nn.Module):
             h_t.append(self.w_sc_t(hidden_matrix[:,v,-1].view(hidden_matrix.shape[0],1,1,-1)))
         # h_t: [batch, 1, 1, k]
         h_t = torch.sum(torch.stack(h_t), dim=0)
-        # print('h_t shape: {}'.format(h_t.shape))
 
         e_ti = []
         for t in range(time_point - 1):
@@ -275,26 +274,23 @@ class MuVAN(nn.Module):
             for v in range(self.input_dim):
                 h_i.append(self.w_sc_i(hidden_matrix[:,v,t].view(batch_size,1,1,-1)))
             h_i = torch.sum(torch.stack(h_i), dim=0)
-            # print('h_i shape: {}'.format(h_i.shape))
 
             ''' cross-context '''
             h_ti = \
                 self.w_cc_1(hidden_matrix[:,v,-1].view(batch_size,1,1,-1)) + \
                 self.w_cc_2(hidden_matrix[:,v,t].view(batch_size,1,1,-1))
-            # print('h_ti shape: {}'.format(h_ti.shape))
 
             ''' previous score information from attention matrix '''
             # hidden_matrix: [batch, view, time, dim]
             attn_weights = torch.bmm(hidden_matrix[:,:,:-1], hidden_matrix[:,:,-1].unsqueeze(3)).squeeze(3)
             if t == 0:
-                soft_attn_weights = F.softmax(attn_weights[:,:,0], 1)
+                soft_attn_weights = self.softmax(attn_weights[:,:,0])
             else:
-                soft_attn_weights = F.softmax(attn_weights[:,:,t-1], 1)
+                soft_attn_weights = self.softmax(attn_weights[:,:,t-1])
 
             e_ti.append(torch.tanh(self.w_a(h_t) + self.w_b(h_i) + self.w_c(h_ti) + self.w_d(soft_attn_weights)))
         # e_ti: [batch, view, time]
         e_ti = torch.stack(e_ti).view(time_point-1, batch_size, self.input_dim).permute(1, 2, 0)
-        # print('e_ti shape: {}'.format(e_ti.shape))
         return e_ti
 
     def hybrid_focus_procedure(self, energy_matrix):
@@ -310,14 +306,8 @@ class MuVAN(nn.Module):
         # e_hat: [batch, view, time]
         e_hat = torch.div(e_hat_top, torch.sum(e_sig, dim=2).unsqueeze(2))
         e_hat = torch.mul(e_hat, self.sharpening_factor)
-        # e_exp: [batch, view, time]
-        # e_exp = torch.exp(torch.mul(e_hat, self.sharpening_factor))
-        # # e_exp_bottom: [batch]
-        # e_exp_bottom = torch.sum(torch.sum(e_exp, dim=1), dim=1)
-        # # attention: [batch, view, time]
-        # attention_matrix = torch.div(e_exp, e_exp_bottom.unsqueeze(1).unsqueeze(2))
-        attention_matrix = F.softmax(e_hat.view(batch, view*time), dim=1).view(batch, view, time)
-        print(attention_matrix.shape)
+        # attention_matrix: [batch, view, time]
+        attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
         return attention_matrix
 
     def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
