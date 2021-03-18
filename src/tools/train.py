@@ -121,6 +121,7 @@ def main(argv=None):
         optimizer = optim.Adadelta(
             params=classifier.parameters(),
             lr=args.lr,
+            rho=args.momentum,
             weight_decay=args.weight_decay
             )
     elif args.optimizer == 'Adagrad':
