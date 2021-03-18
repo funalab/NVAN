@@ -288,7 +288,9 @@ class MuVAN(nn.Module):
             else:
                 soft_attn_weights = self.softmax(attn_weights[:,:,t-1])
 
+            ''' merge '''
             e_ti.append(torch.tanh(self.w_a(h_t) + self.w_b(h_i) + self.w_c(h_ti) + self.w_d(soft_attn_weights)))
+
         # e_ti: [batch, view, time]
         e_ti = torch.stack(e_ti).view(time_point-1, batch_size, self.input_dim).permute(1, 2, 0)
         return e_ti
