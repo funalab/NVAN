@@ -29,7 +29,6 @@ class LSTMClassifier(nn.Module):
         self.loss = lossfun
 
     def forward(self, input):
-        print(input.shape)
         lstm_out, _ = self.lstm(input.view(input.shape[1], input.shape[0], -1))
         tag_space = self.hidden2tag(lstm_out[-1, :, :])
         tag_scores = self.softmax(tag_space)
@@ -159,11 +158,13 @@ class LSTMMultiAttentionClassifier(nn.Module):
         # attn_weights_matrix: [batch, view, time]
         attn_weights_matrix = torch.cat(attn_weights_matrix).permute(1, 0, 2)
 
-        cat_matrix = torch.cat([hidden_matrix[:,:,-1,:], attn_matrix]).view(hidden_matrix.shape[0], 2, self.input_dim, self.hidden_dim * 2)
-        logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
-        logit = self.pool(self.relu(self.attn_fusion_2(logit)))
-        logit = logit.view(logit.size()[0], -1)
-        logit = self.affine(logit)
+        # cat_matrix = torch.cat([hidden_matrix[:,:,-1,:], attn_matrix]).view(hidden_matrix.shape[0], 2, self.input_dim, self.hidden_dim * 2)
+        # logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
+        # logit = self.pool(self.relu(self.attn_fusion_2(logit)))
+        # logit = logit.view(logit.size()[0], -1)
+        # logit = self.affine(logit)
+        batch, view, time = attn_matrix.shape
+        logit = self.affine(attn_matrix.view(batch, -1))
 
         if self.phase == 'test':
             return logit, attn_weights_matrix
@@ -320,8 +321,7 @@ class MuVAN(nn.Module):
         cat_matrix = torch.stack([hidden_matrix[:,:,-1,:], context_matrix]).permute(1, 0, 2, 3)
         logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
         logit = self.pool(self.relu(self.attn_fusion_2(logit)))
-        logit = logit.view(logit.size()[0], -1)
-        logit = self.affine(logit)
+        logit = self.affine(logit.view(logit.size()[0], -1))
         return logit
 
     def forward(self, input):
