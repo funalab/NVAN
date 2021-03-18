@@ -234,6 +234,7 @@ class MuVAN(nn.Module):
             self.w_cc_2 = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
 
         # hybrid_focus_procedure
+        self.eps = 0.00001
         self.sharpening_factor = 2.0
 
         self.relu = nn.ReLU()
@@ -298,7 +299,7 @@ class MuVAN(nn.Module):
         # beta_top: [batch, time]
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [batch, time]
-        beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1))
+        beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1) + self.eps)
         # e_sig: [batch, view, time]
         e_sig = torch.sigmoid(energy_matrix)
         # e_hat_top: [batch, view, time]
