@@ -122,7 +122,8 @@ class LSTMMultiAttentionClassifier(nn.Module):
         self.pool = nn.MaxPool2d(2, stride=2)
         self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
         self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
-        self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+        # self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+        self.affine = nn.Linear(hidden_dim * 2 * input_dim, num_classes)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
@@ -163,8 +164,8 @@ class LSTMMultiAttentionClassifier(nn.Module):
         # logit = self.pool(self.relu(self.attn_fusion_2(logit)))
         # logit = logit.view(logit.size()[0], -1)
         # logit = self.affine(logit)
-        batch, view, time = attn_matrix.shape
-        logit = self.affine(attn_matrix.view(batch, -1))
+        batch, view, dim = attn_matrix.shape
+        logit = self.affine(attn_matrix.reshape(batch, view * dim))
 
         if self.phase == 'test':
             return logit, attn_weights_matrix
