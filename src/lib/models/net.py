@@ -213,8 +213,8 @@ class MuVAN(nn.Module):
 
         self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
 
-        self.multi_view_attention = self.location_based_attention
-        # self.multi_view_attention = self.context_based_attention
+        # self.multi_view_attention = self.location_based_attention
+        self.multi_view_attention = self.context_based_attention
 
         # location-based attention
         if self.multi_view_attention == self.location_based_attention:
@@ -283,11 +283,11 @@ class MuVAN(nn.Module):
 
             ''' previous score information from attention matrix '''
             # hidden_matrix: [batch, view, time, dim]
-            attn_weights = torch.bmm(hidden_matrix[:,:,:-1], hidden_matrix[:,:,-1].unsqueeze(3)).squeeze(3)
             if t == 0:
-                soft_attn_weights = self.softmax(attn_weights[:,:,0])
+                attn_weights = torch.sum(hidden_matrix[:,:,0] * hidden_matrix[:,:,-1], 2)
             else:
-                soft_attn_weights = self.softmax(attn_weights[:,:,t-1])
+                attn_weights = torch.sum(hidden_matrix[:,:,t-1] * hidden_matrix[:,:,-1], 2)
+            soft_attn_weights = self.softmax(attn_weights).unsqueeze(1).unsqueeze(2)
 
             ''' merge '''
             e_ti.append(torch.tanh(self.w_a(h_t) + self.w_b(h_i) + self.w_c(h_ti) + self.w_d(soft_attn_weights)))
