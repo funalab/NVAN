@@ -259,7 +259,7 @@ class MuVAN(nn.Module):
 
     def context_based_attention(self, hidden_matrix):
         # hidden_matrix: [batch, view, time, dim]
-        batch_size, view_size, time_point, _ = hidden_matrix.shape
+        batch_size, _, time_point, _ = hidden_matrix.shape
         ''' local self-context '''
         h_t = []
         for v in range(self.input_dim):
@@ -283,9 +283,17 @@ class MuVAN(nn.Module):
                 self.w_cc_2(hidden_matrix[:,v,t].view(batch_size,1,1,-1))
             # print('h_ti shape: {}'.format(h_ti.shape))
 
-            e_ti.append(torch.tanh(self.w_a(h_t) + self.w_b(h_i) + self.w_c(h_ti)))
+            ''' previous score information from attention matrix '''
+            # hidden_matrix: [batch, view, time, dim]
+            attn_weights = torch.bmm(hidden_matrix[:,:,:-1], hidden_matrix[:,:,-1].unsqueeze(3)).squeeze(3)
+            if t == 0:
+                soft_attn_weights = F.softmax(attn_weights[:,:,0], 1)
+            else:
+                soft_attn_weights = F.softmax(attn_weights[:,:,t-1], 1)
+
+            e_ti.append(torch.tanh(self.w_a(h_t) + self.w_b(h_i) + self.w_c(h_ti) + self.w_d(soft_attn_weights)))
         # e_ti: [batch, view, time]
-        e_ti = torch.stack(e_ti).view(time_point-1, batch_size, view_size).permute(1, 2, 0)
+        e_ti = torch.stack(e_ti).view(time_point-1, batch_size, self.input_dim).permute(1, 2, 0)
         # print('e_ti shape: {}'.format(e_ti.shape))
         return e_ti
 
