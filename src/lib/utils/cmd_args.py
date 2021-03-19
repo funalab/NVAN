@@ -45,6 +45,8 @@ def create_classifier_parser(remaining_argv, **conf_dict):
                         help='')
     parser.add_argument('--lossfun',
                         help='')
+    parser.add_argument('--sharping_factor',
+                        help='')
     parser.add_argument('--eval_metrics',
                         help='')
     args, remaining_argv = parser.parse_known_args(remaining_argv)
