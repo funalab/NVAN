@@ -100,6 +100,14 @@ def main(argv=None):
         criteria_list.append('centroid_z_mean')
     if eval(args.centroid_z_sd):
         criteria_list.append('centroid_z_sd')
+    if eval(args.aspect_ratio_mean):
+        criteria_list.append('aspect_ratio_mean')
+    if eval(args.aspect_ratio_sd):
+        criteria_list.append('aspect_ratio_sd')
+    if eval(args.solidity_mean):
+        criteria_list.append('solidity_mean')
+    if eval(args.solidity_sd):
+        criteria_list.append('solidity_sd')
 
     # Make log
     path_directory = np.sort(os.listdir(args.root_path))
@@ -135,6 +143,7 @@ def main(argv=None):
             tp += 1
             criteria_current = [tp]
             img = io.imread(pi)
+            center = np.array(img.shape) / 2
             if int(args.labeling) == 4:
                 img = morphology.label(img, neighbors=4)
             elif int(args.labeling) == 8:
@@ -179,10 +188,19 @@ def main(argv=None):
             # Centroid Coodinates
             props = measure.regionprops(img)
             x, y, z = [], [], []
+            aspect_ratio, solidity = [], []
             for p in props:
-                x.append(float(p.centroid[2]))
-                y.append(float(p.centroid[1]))
-                z.append(float(p.centroid[0]))
+                x.append(center[2] - float(p.centroid[2]))
+                y.append(center[1] - float(p.centroid[1]))
+                z.append(center[0] - float(p.centroid[0]))
+                try:
+                    aspect_ratio.append(p.major_axis_length / p.minor_axis_length)
+                except:
+                    aspect_ratio.append(np.nan)
+                try:
+                    solidity.append(p.solidity)
+                except:
+                    solidity.append(np.nan)
             if eval(args.centroid_x_mean):
                 criteria_value['centroid_x_mean'].append(np.mean(x))
                 criteria_current.append(np.mean(x))
@@ -201,6 +219,23 @@ def main(argv=None):
             if eval(args.centroid_z_sd):
                 criteria_value['centroid_z_sd'].append(np.std(z))
                 criteria_current.append(np.std(z))
+
+            # Aspect Raio
+            if eval(args.aspect_ratio_mean):
+                criteria_value['aspect_ratio_mean'].append(np.nanmean(aspect_ratio))
+                criteria_current.append(np.nanmean(aspect_ratio))
+            if eval(args.aspect_ratio_sd):
+                criteria_value['aspect_ratio_sd'].append(np.nanstd(aspect_ratio))
+                criteria_current.append(np.nanstd(aspect_ratio))
+
+            # Solidity
+            if eval(args.solidity_mean):
+                criteria_value['solidity_mean'].append(np.nanmean(solidity))
+                criteria_current.append(np.nanmean(solidity))
+            if eval(args.solidity_sd):
+                criteria_value['solidity_sd'].append(np.nanstd(solidity))
+                criteria_current.append(np.nanstd(solidity))
+
 
             with open(os.path.join(save_dir, 'criteria.csv'), 'a') as f:
                 c = csv.writer(f)
