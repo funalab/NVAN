@@ -18,6 +18,7 @@ class LSTMClassifier(nn.Module):
         hidden_dim,
         dropout,
         lossfun,
+        sharping_factor=None,
         phase='train'
         ):
         super(LSTMClassifier, self).__init__()
@@ -45,6 +46,7 @@ class LSTMAttentionClassifier(nn.Module):
             hidden_dim,
             dropout,
             lossfun,
+            sharping_factor=None,
             phase='train'
             ):
         super(LSTMAttentionClassifier, self).__init__()
@@ -110,6 +112,7 @@ class LSTMMultiAttentionClassifier(nn.Module):
             hidden_dim,
             dropout,
             lossfun,
+            sharping_factor=None,
             phase='train'
             ):
         super(LSTMMultiAttentionClassifier, self).__init__()
@@ -204,6 +207,7 @@ class MuVAN(nn.Module):
             hidden_dim,
             dropout,
             lossfun,
+            sharping_factor,
             phase='train'
             ):
         super(MuVAN, self).__init__()
@@ -235,7 +239,7 @@ class MuVAN(nn.Module):
 
         # hybrid_focus_procedure
         self.eps = 0.00001
-        self.sharpening_factor = 500 * input_dim * 2
+        self.sharpening_factor = sharping_factor
 
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(2, stride=2)

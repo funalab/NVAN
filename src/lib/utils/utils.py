@@ -14,6 +14,7 @@ def get_model(args):
             hidden_dim=args.hidden_dim,
             dropout=args.dropout,
             lossfun=eval(args.lossfun),
+            sharping_factor=eval(args.sharping_factor),
             phase=args.phase
         )
     return model
