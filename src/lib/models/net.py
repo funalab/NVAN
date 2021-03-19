@@ -235,7 +235,7 @@ class MuVAN(nn.Module):
 
         # hybrid_focus_procedure
         self.eps = 0.00001
-        self.sharpening_factor = 2.0
+        self.sharpening_factor = 1000.0
 
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(2, stride=2)
@@ -307,7 +307,7 @@ class MuVAN(nn.Module):
         # e_hat_top: [batch, view, time]
         e_hat_top = torch.mul(e_sig, beta.unsqueeze(1))
         # e_hat: [batch, view, time]
-        e_hat = torch.div(e_hat_top, torch.sum(e_sig, dim=2).unsqueeze(2))
+        e_hat = torch.div(e_hat_top, torch.sum(e_sig, dim=1).unsqueeze(1) + self.eps)
         e_hat = torch.mul(e_hat, self.sharpening_factor)
         # attention_matrix: [batch, view, time]
         attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
