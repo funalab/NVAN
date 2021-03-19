@@ -246,7 +246,7 @@ class Tester(object):
 
     def make_heatmap(self, aw, y_pred, y_true, filename):
         plt.figure(figsize=(12, 6))
-        plt.imshow(aw, interpolation='nearest', vmin=0, vmax=1, cmap='jet', aspect=20)
+        plt.imshow(aw, interpolation='nearest', vmin=aw.min(), vmax=aw.max(), cmap='jet', aspect=20)
         plt.ylim([-0.5, len(aw)-0.5])
         plt.yticks([i for i in range(len(aw)-1, -1, -1)], self.criteria_list)
         # plt.yticks([i for i in range(0, len(aw))], [i for i in range(len(aw), 0, -1)])
@@ -254,6 +254,7 @@ class Tester(object):
         plt.title('pred={0}, gt={1}'.format('born' if y_pred[0][0] == 1 else 'abort', 'born' if y_true[0][0] == 1 else 'abort'))
         plt.colorbar()
         plt.savefig(filename)
+        plt.close()
 
 
     def print_eval_results(self, results):
