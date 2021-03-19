@@ -302,6 +302,7 @@ class MuVAN(nn.Module):
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [batch, time]
         beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1) + self.eps)
+        print(beta)
         # e_sig: [batch, view, time]
         e_sig = torch.sigmoid(energy_matrix)
         # e_hat: [batch, view, time]
@@ -339,8 +340,6 @@ class MuVAN(nn.Module):
         energy_matrix = self.multi_view_attention(hidden_matrix)
         # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
-        print(attention_matrix.min(), attention_matrix.max())
-        print(torch.sum(attention_matrix[0], dim=1))
         # context_matrix: [batch, view, dim]
         logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
 
