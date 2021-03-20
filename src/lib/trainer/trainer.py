@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class Trainer(object):
@@ -48,7 +49,7 @@ class Trainer(object):
                 best_epoch = epoch
                 print("Saved better model selected by validation.")
         with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
-            json.dump({'best f-score': self._best_accuracy,
+            json.dump({'best {}'.format(self.eval_metrics): self._best_accuracy,
                         'best epoch': best_epoch}, f, indent=4)
         print('best f1: {}'.format(self._best_accuracy))
         print('best epoch: {}'.format(best_epoch))
@@ -100,6 +101,8 @@ class Trainer(object):
         result_each_epoch['precision_validation'] = float(eval_results["precision"])
         result_each_epoch['recall_validation'] = float(eval_results["recall"])
         result_each_epoch['f1_validation'] = float(eval_results["f1"])
+        result_each_epoch['AUROC_validation'] = float(eval_results["AUROC"])
+        result_each_epoch['AUPR_validation'] = float(eval_results["AUPR"])
         self.results[epoch] = result_each_epoch
         with open(os.path.join(self.save_dir, 'log'), 'w') as f:
             json.dump(self.results, f, indent=4)
@@ -113,6 +116,7 @@ class Tester(object):
         self.file_list = kwargs['file_list']
         self.device = kwargs['device']
         self.criteria_list = kwargs['criteria_list']
+        os.makedirs(os.path.join(self.save_dir, 'figs'), exist_ok=True)
 
     def test(self, model, data_iter, phase="test"):
 
@@ -142,11 +146,11 @@ class Tester(object):
 
         # evaluate
         eval_results = self.evaluate(output_list, truth_list)
+        auroc, aupr = self.evaluate_auc(output_list, truth_list)
+        eval_results['AUROC'] = auroc
+        eval_results['AUPR'] = aupr
         if phase == 'test':
-            auroc, aupr = self.evaluate_auc(output_list, truth_list)
             self.vis_attn_weights(attn_weights_list, output_list, truth_list)
-            eval_results['AUROC'] = auroc
-            eval_results['AUPR'] = aupr
 
         print("[{}] {}, loss: {}".format(phase, self.print_eval_results(eval_results), abs(np.mean(loss_list))))
 
@@ -192,7 +196,7 @@ class Tester(object):
         y_trues, y_preds = [], []
         for y_true, logit in zip(truth, predict):
             y_true = y_true.cpu().numpy()
-            y_pred = [[l.cpu().numpy()[1] for l in logit]]
+            y_pred = [[F.softmax(l, dim=0).cpu().numpy()[1] for l in logit]]
             y_trues.append(y_true)
             y_preds.append(y_pred)
         y_true = np.concatenate(y_trues, axis=0).reshape(len(y_trues))
@@ -214,7 +218,7 @@ class Tester(object):
         plt.xlim([-0.05, 1.05])
         plt.ylim([-0.05, 1.05])
         plt.legend(loc=4, fontsize=18)
-        plt.savefig(os.path.join(self.save_dir, 'AUROC.pdf'))
+        plt.savefig(os.path.join(self.save_dir, 'figs', 'AUROC.pdf'))
         return auroc
 
     def _vis_aupr(self, y_pred, y_true):
@@ -229,7 +233,7 @@ class Tester(object):
         plt.xlim([-0.05, 1.05])
         plt.ylim([-0.05, 1.05])
         plt.legend(loc=3, fontsize=18)
-        plt.savefig(os.path.join(self.save_dir, 'AUPR.pdf'))
+        plt.savefig(os.path.join(self.save_dir, 'figs', 'AUPR.pdf'))
         return aupr
 
     def vis_attn_weights(self, attn_weights_list, predict, truth):
@@ -239,7 +243,7 @@ class Tester(object):
             y_true = y_true.cpu().numpy()
             y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
             aw = aw.squeeze(0).cpu().numpy()
-            filename = os.path.join(self.save_dir, 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
+            filename = os.path.join(self.save_dir, 'figs', 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
             self.make_heatmap(aw, y_pred, y_true, filename)
             cnt += 1
 
