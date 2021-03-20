@@ -249,7 +249,6 @@ class Tester(object):
         plt.imshow(aw, interpolation='nearest', vmin=aw.min(), vmax=aw.max(), cmap='jet', aspect=20)
         plt.ylim([-0.5, len(aw)-0.5])
         plt.yticks([i for i in range(len(aw)-1, -1, -1)], self.criteria_list)
-        # plt.yticks([i for i in range(0, len(aw))], [i for i in range(len(aw), 0, -1)])
         plt.xlabel('time point')
         plt.title('pred={0}, gt={1}'.format('born' if y_pred[0][0] == 1 else 'abort', 'born' if y_true[0][0] == 1 else 'abort'))
         plt.colorbar()
