@@ -301,7 +301,10 @@ class MuVAN(nn.Module):
         # beta_top: [batch, time]
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [batch, time]
-        beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1) + self.eps)
+        beta = torch.div(beta_top - torch.min(beta_top, dim=1)[0].unsqueeze(1),
+                         torch.max(beta_top, dim=1)[0].unsqueeze(1) - torch.min(beta_top, dim=1)[0].unsqueeze(1) + self.eps)
+        # beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1) + self.eps)
+        # print('beta: {}'.format(beta[0]))
 
         ''' original '''
         # e_sig: [batch, view, time]
@@ -309,7 +312,8 @@ class MuVAN(nn.Module):
         # e_hat: [batch, view, time]
         e_hat = torch.div(e_sig, torch.sum(e_sig, dim=1).unsqueeze(1) + self.eps)
         e_hat = torch.mul(e_hat, beta.unsqueeze(1)) # [batch, view, time] x [batch, 1, time]
-        e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
+        e_hat = torch.mul(e_hat, self.sharpening_factor)
+        # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
 
         ''' modification '''
         # gamma_top: [batch, view]
