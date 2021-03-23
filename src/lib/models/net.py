@@ -298,6 +298,42 @@ class MuVAN(nn.Module):
 
     def hybrid_focus_procedure(self, energy_matrix):
         batch, view, time = energy_matrix.shape
+        # beta_top: [batch, view]
+        beta_top = torch.sum(self.relu(energy_matrix), dim=2)
+        # beta: [batch, view]
+        beta = torch.div(beta_top - torch.min(beta_top, dim=1)[0].unsqueeze(1),
+                         torch.max(beta_top, dim=1)[0].unsqueeze(1) - torch.min(beta_top, dim=1)[0].unsqueeze(1) + self.eps)
+        # beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1) + self.eps)
+        # print('beta: {}'.format(beta[0]))
+
+        ''' original '''
+        # e_sig: [batch, view, time]
+        e_sig = torch.sigmoid(energy_matrix)
+        # e_hat: [batch, view, time]
+        e_hat = []
+        for v in range(self.input_dim):
+            e_hat.append(torch.div(e_sig[:,v] - torch.min(e_sig[:,v], dim=1)[0].unsqueeze(1), torch.max(e_sig[:,v], dim=1)[0].unsqueeze(1) - torch.min(e_sig[:,v], dim=1)[0].unsqueeze(1) + self.eps))
+        e_hat = torch.stack(e_hat)
+        e_hat = torch.mul(e_sig, beta.unsqueeze(2)) # [batch, view, time] x [batch, 1, time]
+        e_hat = torch.mul(e_hat, self.sharpening_factor)
+        # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
+
+        ''' modification '''
+        # gamma_top: [batch, view]
+        # gamma_top = torch.sum(self.relu(torch.sigmoid(energy_matrix)), dim=2)
+        # # gamma: [batch, view]
+        # gamma = torch.div(gamma_top, torch.sum(gamma_top, dim=1).unsqueeze(1) + self.eps)
+        # print('gamma: {}'.format(gamma[0]))
+        # # e_hat: [batch, view, time]
+        # e_hat = torch.mul(gamma.unsqueeze(2), beta.unsqueeze(1))
+        # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
+
+        # attention_matrix: [batch, view, time]
+        attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
+        return attention_matrix
+
+    def hybrid_focus_procedure_original(self, energy_matrix):
+        batch, view, time = energy_matrix.shape
         # beta_top: [batch, time]
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [batch, time]
@@ -315,19 +351,10 @@ class MuVAN(nn.Module):
         e_hat = torch.mul(e_hat, self.sharpening_factor)
         # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
 
-        ''' modification '''
-        # gamma_top: [batch, view]
-        # gamma_top = torch.sum(self.relu(torch.sigmoid(energy_matrix)), dim=2)
-        # # gamma: [batch, view]
-        # gamma = torch.div(gamma_top, torch.sum(gamma_top, dim=1).unsqueeze(1) + self.eps)
-        # print('gamma: {}'.format(gamma[0]))
-        # # e_hat: [batch, view, time]
-        # e_hat = torch.mul(gamma.unsqueeze(2), beta.unsqueeze(1))
-        # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
-
         # attention_matrix: [batch, view, time]
         attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
         return attention_matrix
+
 
     def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
         # context_matrix: [batch, view, dim]
