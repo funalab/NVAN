@@ -302,25 +302,27 @@ class MuVAN(nn.Module):
         beta_top = torch.sum(self.relu(energy_matrix), dim=1)
         # beta: [batch, time]
         beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1) + self.eps)
+        print('beta: {}'.format(beta[0]))
 
         ''' original '''
-        # # e_sig: [batch, view, time]
-        # e_sig = torch.sigmoid(energy_matrix)
-        # # e_hat: [batch, view, time]
-        # e_hat = torch.div(e_sig, torch.sum(e_sig, dim=1).unsqueeze(1) + self.eps)
-        # e_hat = torch.mul(e_hat, beta.unsqueeze(1)) # [batch, view, time] x [batch, 1, time]
-        # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
+        # e_sig: [batch, view, time]
+        e_sig = torch.sigmoid(energy_matrix)
+        # e_hat: [batch, view, time]
+        e_hat = torch.div(e_sig, torch.sum(e_sig, dim=2).unsqueeze(2) + self.eps)
+        print('e_hat: {}'.format(e_hat))
+        e_hat = torch.mul(e_hat, beta.unsqueeze(1)) # [batch, view, time] x [batch, 1, time]
+        print('e_hat x beta: {}'.format(e_hat))
+        e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
 
         ''' modification '''
         # gamma_top: [batch, view]
-        gamma_top = torch.sum(self.relu(torch.sigmoid(energy_matrix)), dim=2)
-        print('gamma_top: {}'.format(gamma_top[0]))
-        # gamma: [batch, view]
-        gamma = torch.div(gamma_top, torch.sum(gamma_top, dim=1).unsqueeze(1) + self.eps)
-        print('gamma: {}'.format(gamma[0]))
-        # e_hat: [batch, view, time]
-        e_hat = torch.mul(gamma.unsqueeze(2), beta.unsqueeze(1))
-        e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
+        # gamma_top = torch.sum(self.relu(torch.sigmoid(energy_matrix)), dim=2)
+        # # gamma: [batch, view]
+        # gamma = torch.div(gamma_top, torch.sum(gamma_top, dim=1).unsqueeze(1) + self.eps)
+        # print('gamma: {}'.format(gamma[0]))
+        # # e_hat: [batch, view, time]
+        # e_hat = torch.mul(gamma.unsqueeze(2), beta.unsqueeze(1))
+        # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
 
         # attention_matrix: [batch, view, time]
         attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
