@@ -33,8 +33,6 @@ def create_classifier_parser(remaining_argv, **conf_dict):
                         help='')
     parser.add_argument('--padding_idx', type=int,
                         help='')
-    parser.add_argument('--embed_dim', type=int,
-                        help='')
     parser.add_argument('--num_classes', type=int,
                         help='')
     parser.add_argument('--num_layers', type=int,

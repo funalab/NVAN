@@ -162,6 +162,7 @@ class iMuVAN(nn.Module):
 
     def forward(self, input):
         hidden_matrix = []
+        print(input.shape)
         for v in range(self.input_dim):
             # lstm_out: [batch, time, dim]
             lstm_out, _ = self.bgru(input[:,:,v].unsqueeze(2))

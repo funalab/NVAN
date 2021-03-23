@@ -6,8 +6,7 @@ from torch.utils.data import Dataset
 from src.lib.datasets.data_loader import csv_loader, csv_loader_criteria_list
 
 class EmbryoDataset(Dataset):
-    def __init__(self, transform=None, root=None, split_list=None, train=True):
-        self.transform = transform
+    def __init__(self, root=None, split_list=None, train=True):
         self.root = root
         self.train = train
         with open(split_list, 'r') as f:
@@ -18,6 +17,7 @@ class EmbryoDataset(Dataset):
             self.abort_list = [line.rstrip() for line in f]
         self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, 'input', self.file_list[0], 'criteria.csv'))
         self.eps = 0.000001
+        self.delete_tp = 20
 
     def __len__(self):
         return len(self.file_list)
@@ -39,12 +39,13 @@ class EmbryoDataset(Dataset):
         vec = vec.transpose(1, 0)
         return np.array([(v - np.mean(v)) / (np.std(v) + self.eps) for v in vec]).transpose(1, 0).astype(np.float32)
 
-    def transform(self, vec):
-        return np.array(vec[int(random.uniform(0, 20)):-int(random.uniform(0, 20))]).astype(np.float32)
+    def augmentation(self, vec):
+        return np.array(vec[int(random.uniform(0, self.delete_tp)):-int(random.uniform(0, self.delete_tp))]).astype(np.float32)
 
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
         if self.train:
-            input = self.transform(input)
+            input = self.augmentation(input)
+        print(input.shape)
         input = self.normalization(input)
         return torch.tensor(input), torch.tensor(label)

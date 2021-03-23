@@ -1,14 +1,17 @@
 import os
 import torch.nn as nn
-from src.lib.models.net import LSTMClassifier, LSTMAttentionClassifier, LSTMMultiAttentionClassifier,BiDirectionalLSTMClassifier, MuVAN
+# from src.lib.models import LSTM, LSTMAttention, LSTMMultiAttention, MuVAN, iMuVAN
+from src.lib.models.LSTM import LSTM
+from src.lib.models.LSTMAttention import LSTMAttention
+from src.lib.models.LSTMMultiAttention import LSTMMultiAttention
+from src.lib.models.MuVAN import MuVAN
+from src.lib.models.iMuVAN import iMuVAN
 from src.lib.datasets.dataset import EmbryoDataset
-from src.lib.datasets.transforms import normalize
 
 
 def get_model(args):
     model = eval(args.model)(
             input_dim=args.input_dim,
-            embed_dim=args.embed_dim,
             num_classes=args.num_classes,
             num_layers=args.num_layers,
             hidden_dim=args.hidden_dim,
@@ -20,13 +23,11 @@ def get_model(args):
 
 def get_dataset(args):
     train_dataset = EmbryoDataset(
-        transform=normalize(),
         root=args.root_path,
         split_list=args.split_list_train,
         train=True
     )
     validation_dataset = EmbryoDataset(
-        transform=normalize(),
         root=args.root_path,
         split_list=args.split_list_validation,
         train=False
@@ -36,7 +37,6 @@ def get_dataset(args):
 
 def get_test_dataset(args):
     test_dataset = EmbryoDataset(
-        transform=normalize(),
         root=args.root_path,
         split_list=args.split_list_test,
         train=False
