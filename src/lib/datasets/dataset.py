@@ -17,7 +17,7 @@ class EmbryoDataset(Dataset):
             self.abort_list = [line.rstrip() for line in f]
         self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, 'input', self.file_list[0], 'criteria.csv'))
         self.eps = 0.000001
-        self.delete_tp = 20
+        self.delete_tp = 1
 
     def __len__(self):
         return len(self.file_list)
@@ -40,12 +40,14 @@ class EmbryoDataset(Dataset):
         return np.array([(v - np.mean(v)) / (np.std(v) + self.eps) for v in vec]).transpose(1, 0).astype(np.float32)
 
     def augmentation(self, vec):
-        return np.array(vec[int(random.uniform(0, self.delete_tp)):-int(random.uniform(0, self.delete_tp))]).astype(np.float32)
+        s = int(random.uniform(0, self.delete_tp))
+        e = int(random.uniform(0, self.delete_tp)) + 1
+        vec_aug = np.array(vec[s:-e]).astype(np.float32)
+        return vec_aug
 
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
         if self.train:
             input = self.augmentation(input)
-        print(input.shape)
         input = self.normalization(input)
         return torch.tensor(input), torch.tensor(label)
