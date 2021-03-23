@@ -303,8 +303,6 @@ class MuVAN(nn.Module):
         # beta: [batch, view]
         beta = torch.div(beta_top - torch.min(beta_top, dim=1)[0].unsqueeze(1),
                          torch.max(beta_top, dim=1)[0].unsqueeze(1) - torch.min(beta_top, dim=1)[0].unsqueeze(1) + self.eps)
-        # beta = torch.div(beta_top, torch.sum(beta_top, dim=1).unsqueeze(1) + self.eps)
-        # print('beta: {}'.format(beta[0]))
 
         ''' original '''
         # e_sig: [batch, view, time]
@@ -312,11 +310,14 @@ class MuVAN(nn.Module):
         # e_hat: [batch, view, time]
         e_hat = []
         for v in range(self.input_dim):
-            e_hat.append(torch.div(e_sig[:,v] - torch.min(e_sig[:,v], dim=1)[0].unsqueeze(1), torch.max(e_sig[:,v], dim=1)[0].unsqueeze(1) - torch.min(e_sig[:,v], dim=1)[0].unsqueeze(1) + self.eps))
-        e_hat = torch.stack(e_hat)
-        e_hat = torch.mul(e_sig, beta.unsqueeze(2)) # [batch, view, time] x [batch, 1, time]
+            #e_sig_v = energy_matrix[:,v]
+            e_sig_v = e_sig[:,v]
+            e_sig_v_min = torch.min(e_sig_v, dim=1)[0].unsqueeze(1)
+            e_sig_v_max = torch.max(e_sig_v, dim=1)[0].unsqueeze(1)
+            e_hat.append(torch.div(e_sig_v - e_sig_v_min, e_sig_v_max - e_sig_v_min + self.eps))
+        e_hat = torch.stack(e_hat).permute(1, 0, 2)
+        e_hat = torch.mul(e_hat, beta.unsqueeze(2)) # [batch, view, time] x [batch, 1, time]
         e_hat = torch.mul(e_hat, self.sharpening_factor)
-        # e_hat = torch.mul(e_hat, self.sharpening_factor * view * time)
 
         ''' modification '''
         # gamma_top: [batch, view]
@@ -379,7 +380,6 @@ class MuVAN(nn.Module):
         energy_matrix = self.multi_view_attention(hidden_matrix)
         # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
-        print('attention min: {}, max: {}'.format(attention_matrix.min(), attention_matrix.max()))
         # context_matrix: [batch, view, dim]
         logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
 
