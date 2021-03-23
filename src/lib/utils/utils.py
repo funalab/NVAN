@@ -5,7 +5,7 @@ from src.lib.models.LSTM import LSTM
 from src.lib.models.LSTMAttention import LSTMAttention
 from src.lib.models.LSTMMultiAttention import LSTMMultiAttention
 from src.lib.models.MuVAN import MuVAN
-from src.lib.models.iMuVAN import iMuVAN
+from src.lib.models.NVAN import NVAN
 from src.lib.datasets.dataset import EmbryoDataset
 
 

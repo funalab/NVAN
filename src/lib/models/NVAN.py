@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class iMuVAN(nn.Module):
+class NVAN(nn.Module):
     """
     Multi-view Attention Network for Multivariate Temporal Data
 
@@ -35,7 +35,7 @@ class iMuVAN(nn.Module):
             lossfun,
             phase='train'
             ):
-        super(iMuVAN, self).__init__()
+        super(NVAN, self).__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
