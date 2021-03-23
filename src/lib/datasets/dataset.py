@@ -17,7 +17,7 @@ class EmbryoDataset(Dataset):
             self.abort_list = [line.rstrip() for line in f]
         self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, 'input', self.file_list[0], 'criteria.csv'))
         self.eps = 0.000001
-        self.delete_tp = 1
+        self.delete_tp = 20
 
     def __len__(self):
         return len(self.file_list)
