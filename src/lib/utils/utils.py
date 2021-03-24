@@ -6,19 +6,27 @@ from src.lib.models.LSTMAttention import LSTMAttention
 from src.lib.models.LSTMMultiAttention import LSTMMultiAttention
 from src.lib.models.MuVAN import MuVAN
 from src.lib.models.NVAN import NVAN
+from src.lib.models.Transformer import Transformer
 from src.lib.datasets.dataset import EmbryoDataset
 
 
 def get_model(args):
-    model = eval(args.model)(
-            input_dim=args.input_dim,
-            num_classes=args.num_classes,
-            num_layers=args.num_layers,
-            hidden_dim=args.hidden_dim,
-            dropout=args.dropout,
-            lossfun=eval(args.lossfun),
-            phase=args.phase
+    if args.model != 'Transformer':
+        model = eval(args.model)(
+                input_dim=args.input_dim,
+                num_classes=args.num_classes,
+                num_layers=args.num_layers,
+                hidden_dim=args.hidden_dim,
+                dropout=args.dropout,
+                lossfun=eval(args.lossfun),
+                phase=args.phase
+            )
+    else:
+        model = eval(args.model)(
+                config=None,
+                src_vocab=None
         )
+
     return model
 
 def get_dataset(args):
