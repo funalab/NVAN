@@ -25,12 +25,14 @@ def get_dataset(args):
     train_dataset = EmbryoDataset(
         root=args.root_path,
         split_list=args.split_list_train,
-        train=True
+        train=True,
+        delete_tp=eval(args.delete_tp)
     )
     validation_dataset = EmbryoDataset(
         root=args.root_path,
         split_list=args.split_list_validation,
-        train=False
+        train=False,
+        delete_tp=None
     )
     return train_dataset, validation_dataset
 
@@ -39,7 +41,8 @@ def get_test_dataset(args):
     test_dataset = EmbryoDataset(
         root=args.root_path,
         split_list=args.split_list_test,
-        train=False
+        train=False,
+        delete_tp=None
     )
     return test_dataset
 

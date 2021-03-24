@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 from src.lib.datasets.data_loader import csv_loader, csv_loader_criteria_list
 
 class EmbryoDataset(Dataset):
-    def __init__(self, root=None, split_list=None, train=True):
+    def __init__(self, root=None, split_list=None, train=True, delete_tp=20):
         self.root = root
         self.train = train
         with open(split_list, 'r') as f:
@@ -17,7 +17,7 @@ class EmbryoDataset(Dataset):
             self.abort_list = [line.rstrip() for line in f]
         self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, 'input', self.file_list[0], 'criteria.csv'))
         self.eps = 0.000001
-        self.delete_tp = 20
+        self.delete_tp = delete_tp
 
     def __len__(self):
         return len(self.file_list)
