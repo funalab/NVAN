@@ -71,6 +71,8 @@ def create_runtime_parser(remaining_argv, **conf_dict):
                         help='Momentum (used in MomentumSGD)')
     parser.add_argument('--weight_decay', type=float,
                         help='Weight decay for optimizer scheduling')
+    parser.add_argument('--delete_tp', type=int,
+                        help='Number of time point deleted')
     parser.add_argument('--device',
                         help='GPU ID (negative value indicates CPU')
     parser.add_argument('--phase',

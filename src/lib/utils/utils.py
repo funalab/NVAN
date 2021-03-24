@@ -26,7 +26,7 @@ def get_dataset(args):
         root=args.root_path,
         split_list=args.split_list_train,
         train=True,
-        delete_tp=eval(args.delete_tp)
+        delete_tp=args.delete_tp
     )
     validation_dataset = EmbryoDataset(
         root=args.root_path,
