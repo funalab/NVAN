@@ -15,8 +15,7 @@ import pytz
 from glob import glob
 from datetime import datetime
 from skimage import io
-from skimage import morphology
-from skimage import measure
+from skimage import morphology, measure, transform
 from skimage.measure import regionprops
 from skimage.morphology import watershed
 from scipy import ndimage
@@ -67,6 +66,12 @@ def main(argv=None):
     random.seed(int(args.seed))
     np.random.seed(int(args.seed))
 
+    # Resolution
+    spatial_resolution = np.array(eval(args.spatial_resolution))
+    voxel_convert_scale = spatial_resolution[0] * spatial_resolution[1] * spatial_resolution[2]
+    spatial_resolution /= np.min(spatial_resolution)
+    time_resolution = eval(args.time_resolution)
+
     # Make Directory
     os.makedirs(args.save_dir, exist_ok=True)
     current_datetime = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y%m%d_%H%M%S')
@@ -88,18 +93,6 @@ def main(argv=None):
         criteria_list.append('surface_mean')
     if eval(args.surface_sd):
         criteria_list.append('surface_sd')
-    if eval(args.centroid_x_mean):
-        criteria_list.append('centroid_x_mean')
-    if eval(args.centroid_x_sd):
-        criteria_list.append('centroid_x_sd')
-    if eval(args.centroid_y_mean):
-        criteria_list.append('centroid_y_mean')
-    if eval(args.centroid_y_sd):
-        criteria_list.append('centroid_y_sd')
-    if eval(args.centroid_z_mean):
-        criteria_list.append('centroid_z_mean')
-    if eval(args.centroid_z_sd):
-        criteria_list.append('centroid_z_sd')
     if eval(args.aspect_ratio_mean):
         criteria_list.append('aspect_ratio_mean')
     if eval(args.aspect_ratio_sd):
@@ -108,6 +101,10 @@ def main(argv=None):
         criteria_list.append('solidity_mean')
     if eval(args.solidity_sd):
         criteria_list.append('solidity_sd')
+    if eval(args.centroid_mean):
+        criteria_list.append('centroid_mean')
+    if eval(args.centroid_sd):
+        criteria_list.append('centroid_sd')
 
     # Make log
     path_directory = np.sort(os.listdir(args.root_path))
@@ -143,7 +140,7 @@ def main(argv=None):
             tp += 1
             criteria_current = [tp]
             img = io.imread(pi)
-            center = np.array(img.shape) / 2
+            center = np.array(img.shape * spatial_resolution) / 2
             if int(args.labeling) == 4:
                 img = morphology.label(img, neighbors=4)
             elif int(args.labeling) == 8:
@@ -157,7 +154,7 @@ def main(argv=None):
                 criteria_current.append(len(np.unique(img)) - 1)
 
             # Volume
-            volume_list = np.unique(img, return_counts=True)[1][1:]
+            volume_list = np.unique(img, return_counts=True)[1][1:] * voxel_convert_scale
             if eval(args.volume_sum):
                 criteria_value['volume_sum'].append(np.sum(volume_list))
                 criteria_current.append(np.sum(volume_list))
@@ -168,13 +165,29 @@ def main(argv=None):
                 criteria_value['volume_sd'].append(np.std(volume_list))
                 criteria_current.append(np.std(volume_list))
 
-            # Surface Area
-            img_area = np.zeros((np.shape(img)))
+            # Surface Area, Aspect Ratio, Solidity, Centroid Coodinates
+            ip_size = np.array(img.shape * spatial_resolution).astype(np.uint8)
+            img_area = np.zeros(img.shape)
+            centroid, aspect_ratio, solidity = [], [], []
             for n in range(1, len(np.unique(img))):
                 img_bin = np.array(img == n) * 1
                 img_ero = img_bin - morphology.erosion(img_bin, selem=kernel)
                 img_area += img_ero * n
-            surface_list = np.unique(img_area, return_counts=True)[1][1:]
+
+                img_bin = np.array(transform.resize(img_bin, ip_size, order=1, preserve_range=True) > 0) * 1
+                p = measure.regionprops(img_bin)[0]
+                try:
+                    aspect_ratio.append(p.major_axis_length / p.minor_axis_length)
+                except:
+                    aspect_ratio.append(np.nan)
+                try:
+                    solidity.append(p.solidity)
+                except:
+                    solidity.append(np.nan)
+                centroid.append(np.sqrt((center[2] - float(p.centroid[2])) ** 2 + (center[1] - float(p.centroid[1])) ** 2 + (center[0] - float(p.centroid[0])) ** 2))
+
+            # Surface Area
+            surface_list = np.unique(img_area, return_counts=True)[1][1:] * voxel_convert_scale
             if eval(args.surface_sum):
                 criteria_value['surface_sum'].append(np.sum(surface_list))
                 criteria_current.append(np.sum(surface_list))
@@ -184,41 +197,6 @@ def main(argv=None):
             if eval(args.surface_sd):
                 criteria_value['surface_sd'].append(np.std(surface_list))
                 criteria_current.append(np.std(surface_list))
-
-            # Centroid Coodinates
-            props = measure.regionprops(img)
-            x, y, z = [], [], []
-            aspect_ratio, solidity = [], []
-            for p in props:
-                x.append(center[2] - float(p.centroid[2]))
-                y.append(center[1] - float(p.centroid[1]))
-                z.append(center[0] - float(p.centroid[0]))
-                try:
-                    aspect_ratio.append(p.major_axis_length / p.minor_axis_length)
-                except:
-                    aspect_ratio.append(np.nan)
-                try:
-                    solidity.append(p.solidity)
-                except:
-                    solidity.append(np.nan)
-            if eval(args.centroid_x_mean):
-                criteria_value['centroid_x_mean'].append(np.mean(x))
-                criteria_current.append(np.mean(x))
-            if eval(args.centroid_x_sd):
-                criteria_value['centroid_x_sd'].append(np.std(x))
-                criteria_current.append(np.std(x))
-            if eval(args.centroid_y_mean):
-                criteria_value['centroid_y_mean'].append(np.mean(y))
-                criteria_current.append(np.mean(y))
-            if eval(args.centroid_y_sd):
-                criteria_value['centroid_y_sd'].append(np.std(y))
-                criteria_current.append(np.std(y))
-            if eval(args.centroid_z_mean):
-                criteria_value['centroid_z_mean'].append(np.mean(z))
-                criteria_current.append(np.mean(z))
-            if eval(args.centroid_z_sd):
-                criteria_value['centroid_z_sd'].append(np.std(z))
-                criteria_current.append(np.std(z))
 
             # Aspect Raio
             if eval(args.aspect_ratio_mean):
@@ -235,6 +213,14 @@ def main(argv=None):
             if eval(args.solidity_sd):
                 criteria_value['solidity_sd'].append(np.nanstd(solidity))
                 criteria_current.append(np.nanstd(solidity))
+
+            # Centroid Coodinates
+            if eval(args.centroid_mean):
+                criteria_value['centroid_mean'].append(np.mean(centroid))
+                criteria_current.append(np.mean(centroid))
+            if eval(args.centroid_sd):
+                criteria_value['centroid_sd'].append(np.std(centroid))
+                criteria_current.append(np.std(centroid))
 
 
             with open(os.path.join(save_dir, 'criteria.csv'), 'a') as f:
