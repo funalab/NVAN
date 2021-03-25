@@ -66,8 +66,13 @@ class Transformer(nn.Module):
         embedded = self.embed(x)
         encoded_sents = self.encoder(embedded)
         final_feature_map = encoded_sents[:,-1,:]
-        final_out = self.fc(final_feature_map)
-        return final_out
+        logit = self.fc(final_feature_map)
+
+        if self.phase == 'test':
+            return logit, None
+        else:
+            return logit
+
 
 
 def attention(query, key, value, mask=None, dropout=None):

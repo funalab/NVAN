@@ -134,7 +134,8 @@ class Tester(object):
             if phase == 'test':
                 with torch.no_grad():
                     prediction, attn_weights = model(input.to(torch.device(self.device)))
-                attn_weights_list.append(attn_weights.detach())
+                if attn_weights != None:
+                    attn_weights_list.append(attn_weights.detach())
             else:
                 with torch.no_grad():
                     prediction = model(input.to(torch.device(self.device)))
@@ -149,7 +150,7 @@ class Tester(object):
         auroc, aupr = self.evaluate_auc(output_list, truth_list)
         eval_results['AUROC'] = auroc
         eval_results['AUPR'] = aupr
-        if phase == 'test':
+        if phase == 'test' and attn_weights_list != []:
             self.vis_attn_weights(attn_weights_list, output_list, truth_list)
 
         print("[{}] {}, loss: {}".format(phase, self.print_eval_results(eval_results), abs(np.mean(loss_list))))
