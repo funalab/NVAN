@@ -1,3 +1,4 @@
+import copy
 from copy import deepcopy
 import numpy as np
 import math
@@ -8,34 +9,62 @@ import torch.nn.functional as F
 
 
 class Transformer(nn.Module):
-    def __init__(self, config, src_vocab):
+    """
+    Transformer for Multivariate Temporal Data
+
+    Parameters
+    ----------
+    input_dim : dimention of multivariable
+    num_classes : number of the output classes
+    num_layers : number of hidden layers
+    hidden_dim : number of unit on the hidden layer
+    num_head : number of attention head
+    dropout : dropout rate
+    lossfun : loss function
+    phase : specify phase of training [train, validation, test]
+
+    Inputs
+    ------
+    input: tensor, shaped [batch, time, view]
+
+    Outputs
+    -------
+    output: tensor, shaped [batch, num_classes]
+    """
+
+    def __init__(
+        self,
+        input_dim,
+        num_classes,
+        num_layers,
+        hidden_dim,
+        num_head,
+        dropout,
+        lossfun,
+        phase
+        ):
         super(Transformer, self).__init__()
-        self.config = config
-        
-        h, N, dropout = self.config.h, self.config.N, self.config.dropout
-        d_model, d_ff = self.config.d_model, self.config.d_ff
-        
-        attn = MultiHeadedAttention(h, d_model)
-        ff = PositionwiseFeedForward(d_model, d_ff, dropout)
-        position = PositionalEncoding(d_model, dropout)
-        
-        self.encoder = Encoder(EncoderLayer(config.d_model, deepcopy(attn), deepcopy(ff), dropout), N)
-        self.src_embed = nn.Sequential(Embeddings(config.d_model, src_vocab), deepcopy(position)) #Embeddings followed by PE
+        attn = MultiHeadedAttention(num_head, hidden_dim)
+        ff = PositionwiseFeedForward(hidden_dim, hidden_dim*2, dropout)
+        position = PositionalEncoding(hidden_dim, dropout)
+
+        self.encoder = Encoder(EncoderLayer(hidden_dim, deepcopy(attn), deepcopy(ff), dropout), num_layers)
+        # self.src_embed = nn.Sequential(Embeddings(hidden_dim, input_dim), deepcopy(position))
+        self.embed = Embeddings(input_dim, hidden_dim)
 
         # Fully-Connected Layer
         self.fc = nn.Linear(
-            self.config.d_model,
-            self.config.output_size
+            hidden_dim,
+            num_classes
         )
-        
-        # Softmax non-linearity
-        self.softmax = nn.Softmax()
+        self.loss = lossfun
+        self.phase = phase
 
     def forward(self, x):
-        embedded_sents = self.src_embed(x.permute(1,0)) # shape = (batch_size, sen_len, d_model)
-        encoded_sents = self.encoder(embedded_sents)
-        
-        # Convert input to (batch_size, d_model) for linear layer
+        # x: [batch_size, time, view]
+        # embedded_sents = self.src_embed(x)
+        embedded = self.embed(x)
+        encoded_sents = self.encoder(embedded)
         final_feature_map = encoded_sents[:,-1,:]
         final_out = self.fc(final_feature_map)
         return final_out
@@ -69,24 +98,24 @@ class MultiHeadedAttention(nn.Module):
         self.linears = clones(nn.Linear(d_model, d_model), 4)
         self.attn = None
         self.dropout = nn.Dropout(p=dropout)
-        
+
     def forward(self, query, key, value, mask=None):
         "Implements Multi-head attention"
         if mask is not None:
             # Same mask applied to all h heads.
             mask = mask.unsqueeze(1)
         nbatches = query.size(0)
-        
-        # 1) Do all the linear projections in batch from d_model => h x d_k 
+
+        # 1) Do all the linear projections in batch from d_model => h x d_k
         query, key, value = \
             [l(x).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
              for l, x in zip(self.linears, (query, key, value))]
-        
-        # 2) Apply attention on all the projected vectors in batch. 
-        x, self.attn = attention(query, key, value, mask=mask, 
+
+        # 2) Apply attention on all the projected vectors in batch.
+        x, self.attn = attention(query, key, value, mask=mask,
                                  dropout=self.dropout)
-        
-        # 3) "Concat" using a view and apply a final linear. 
+
+        # 3) "Concat" using a view and apply a final linear.
         x = x.transpose(1, 2).contiguous() \
              .view(nbatches, -1, self.h * self.d_k)
         return self.linears[-1](x)
@@ -95,14 +124,14 @@ class MultiHeadedAttention(nn.Module):
 class Encoder(nn.Module):
     '''
     Transformer Encoder
-    
+
     It is a stack of N layers.
     '''
     def __init__(self, layer, N):
         super(Encoder, self).__init__()
         self.layers = clones(layer, N)
         self.norm = LayerNorm(layer.size)
-        
+
     def forward(self, x, mask=None):
         for layer in self.layers:
             x = layer(x, mask)
@@ -112,7 +141,7 @@ class Encoder(nn.Module):
 class EncoderLayer(nn.Module):
     '''
     An encoder layer
-    
+
     Made up of self-attention and a feed forward layer.
     Each of these sublayers have residual and layer norm, implemented by SublayerOutput.
     '''
@@ -170,18 +199,17 @@ class PositionwiseFeedForward(nn.Module):
         return self.w_2(self.dropout(F.relu(self.w_1(x))))
 
 
-
 class Embeddings(nn.Module):
     '''
     Usual Embedding layer with weights multiplied by sqrt(d_model)
     '''
-    def __init__(self, d_model, vocab):
+    def __init__(self, input_dim, hidden_dim):
         super(Embeddings, self).__init__()
-        self.lut = nn.Embedding(vocab, d_model)
-        self.d_model = d_model
+        self.embed = nn.Linear(input_dim, hidden_dim)
 
     def forward(self, x):
-        return self.lut(x) * math.sqrt(self.d_model)
+        embed = torch.stack([self.embed(x[:,t]) for t in range(x.shape[1])]).permute(1,0,2)
+        return embed
 
 
 class PositionalEncoding(nn.Module):
@@ -189,7 +217,7 @@ class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout, max_len=5000):
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
-        
+
         # Compute the positional encodings once in log space.
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len).unsqueeze(1)
@@ -199,8 +227,8 @@ class PositionalEncoding(nn.Module):
         pe[:, 1::2] = torch.cos(torch.as_tensor(position.numpy() * div_term.unsqueeze(0).numpy()))#torch.cos(position * div_term)
         pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
-        
+
     def forward(self, x):
-        x = x + Variable(self.pe[:, :x.size(1)], 
+        x = x + Variable(self.pe[:, :x.size(1)],
                          requires_grad=False)
         return self.dropout(x)

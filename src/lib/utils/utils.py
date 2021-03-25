@@ -23,8 +23,14 @@ def get_model(args):
             )
     else:
         model = eval(args.model)(
-                config=None,
-                src_vocab=None
+                input_dim=args.input_dim,
+                num_classes=args.num_classes,
+                num_layers=args.num_layers,
+                hidden_dim=args.hidden_dim,
+                num_head=args.num_head,
+                dropout=args.dropout,
+                lossfun=eval(args.lossfun),
+                phase=args.phase
         )
 
     return model
