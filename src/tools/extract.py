@@ -171,7 +171,7 @@ def main(argv=None):
             # Surface Area
             img_area = np.zeros((np.shape(img)))
             for n in range(1, len(np.unique(img))):
-                img_bin = np.array(img == 1) * 1
+                img_bin = np.array(img == n) * 1
                 img_ero = img_bin - morphology.erosion(img_bin, selem=kernel)
                 img_area += img_ero * n
             surface_list = np.unique(img_area, return_counts=True)[1][1:]
