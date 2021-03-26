@@ -25,10 +25,12 @@ class GraphDraw():
 
     def __init__(self, opbase, file_list):
         self.save_dir = save_dir
-        self.scale = 0.8 * 0.8 * 2.0
+        # self.scale = 0.8 * 0.8 * 2.0
+        self.scale = 1.0 * 1.0 * 1.0
         self.fn = file_list
         self.density = 0
         self.roi_pixel_num = 0
+
 
     def graph_draw_number(self, Time, Count):
         # Count
@@ -57,8 +59,6 @@ class GraphDraw():
 
     def graph_draw_synchronicity(self, Time, Count):
         # Count
-        #cmap =  plt.get_cmap('Paired')
-        #cell_stage = [2, 3, 4, 5, 8, 9, 16, 17, 32]
         cell_stage = [2, 3, 4, 5, 8, 9, 16, 17, 32, 128]
         label = ['2-cell stage', '3-cell stage', '4-cell stage', '5- to 7-cell stage', '8-cell stage', '9- to 15-cell stage', '16-cell stage', '17- to 31-cell stage', '32-cell stage', '33- to 63-cell stage', '64-cell stage', '65- to 127-cell stage', '128-cell stage or more']
         all_period_cell = []
@@ -136,7 +136,6 @@ class GraphDraw():
             plt.xlim([0.0, round(Time[-1], 1)])
         plt.savefig(os.path.join(self.save_dir, 'surface_area_mean.pdf'))
 
-        cmap =  plt.get_cmap('Paired')
         plt.figure()
         for num in range(len(MeanArea)):
             colors = cmap(float(num) / len(MeanArea))
@@ -146,6 +145,7 @@ class GraphDraw():
         if Time[-1] != 0:
             plt.xlim([0.0, round(Time[-1], 1)])
         plt.savefig(os.path.join(self.save_dir, 'surface_area_std.pdf'))
+
 
     def graph_draw_surface_volume(self, Time, MeanArea, StdArea, MeanVol, StdVol):
         assert len(MeanArea) == len(MeanVol)
@@ -162,6 +162,77 @@ class GraphDraw():
             plt.xlim([0.0, round(Time[-1], 1)])
         plt.savefig(os.path.join(self.save_dir, 'surface_volume_ratio_mean.pdf'))
 
+
+    def graph_draw_aspect_ratio(self, Time, MeanAsp, StdAsp):
+        # Aspect Ratio Mean & SD
+        cmap =  plt.get_cmap('Paired')
+        plt.figure()
+        for num in range(len(MeanAsp)):
+            colors = cmap(float(num) / len(MeanAsp))
+            plt.plot(Time[:len(MeanAsp[num])], np.array(MeanAsp[num]), color=colors, alpha=0.8, linewidth=1.0)
+        plt.xlabel('Time [day]', size=12)
+        plt.ylabel('Aspect Ratio', size=12)
+        if Time[-1] != 0:
+            plt.xlim([0.0, round(Time[-1], 1)])
+        plt.savefig(os.path.join(self.save_dir, 'aspect_ratio_mean.pdf'))
+
+        plt.figure()
+        for num in range(len(StdAsp)):
+            colors = cmap(float(num) / len(StdAsp))
+            plt.plot(Time[:len(StdAsp[num])], np.array(StdAsp[num]), color=colors, alpha=0.8, linewidth=1.0)
+        plt.xlabel('Time [day]', size=12)
+        plt.ylabel('Aspect Ratio (standard deviation)', size=12)
+        if Time[-1] != 0:
+            plt.xlim([0.0, round(Time[-1], 1)])
+        plt.savefig(os.path.join(self.save_dir, 'aspect_ratio_std.pdf'))
+
+
+    def graph_draw_solidity(self, Time, MeanSol, StdSol):
+        # Solidity Mean & SD
+        cmap =  plt.get_cmap('Paired')
+        plt.figure()
+        for num in range(len(MeanSol)):
+            colors = cmap(float(num) / len(MeanSol))
+            plt.plot(Time[:len(MeanSol[num])], np.array(MeanSol[num]), color=colors, alpha=0.8, linewidth=1.0)
+        plt.xlabel('Time [day]', size=12)
+        plt.ylabel('Solidity', size=12)
+        if Time[-1] != 0:
+            plt.xlim([0.0, round(Time[-1], 1)])
+        plt.savefig(os.path.join(self.save_dir, 'solidity_mean.pdf'))
+
+        plt.figure()
+        for num in range(len(StdSol)):
+            colors = cmap(float(num) / len(StdSol))
+            plt.plot(Time[:len(StdSol[num])], np.array(StdSol[num]), color=colors, alpha=0.8, linewidth=1.0)
+        plt.xlabel('Time [day]', size=12)
+        plt.ylabel('Solidity (standard deviation)', size=12)
+        if Time[-1] != 0:
+            plt.xlim([0.0, round(Time[-1], 1)])
+        plt.savefig(os.path.join(self.save_dir, 'solidity_std.pdf'))
+
+
+    def graph_draw_centroid(self, Time, MeanCen, StdCen):
+        # Centroid Mean & SD
+        cmap =  plt.get_cmap('Paired')
+        plt.figure()
+        for num in range(len(MeanCen)):
+            colors = cmap(float(num) / len(MeanCen))
+            plt.plot(Time[:len(MeanCen[num])], np.array(MeanCen[num]), color=colors, alpha=0.8, linewidth=1.0)
+        plt.xlabel('Time [day]', size=12)
+        plt.ylabel('Centroid [$\mu m$]', size=12)
+        if Time[-1] != 0:
+            plt.xlim([0.0, round(Time[-1], 1)])
+        plt.savefig(os.path.join(self.save_dir, 'centroid_mean.pdf'))
+
+        plt.figure()
+        for num in range(len(StdCen)):
+            colors = cmap(float(num) / len(StdCen))
+            plt.plot(Time[:len(StdCen[num])], np.array(StdCen[num]), color=colors, alpha=0.8, linewidth=1.0)
+        plt.xlabel('Time [day]', size=12)
+        plt.ylabel('Centroid (standard deviation) [$\mu m$]', size=12)
+        if Time[-1] != 0:
+            plt.xlim([0.0, round(Time[-1], 1)])
+        plt.savefig(os.path.join(self.save_dir, 'centroid_std.pdf'))
 
 if __name__ == '__main__':
     ap = ArgumentParser(description='python graph_draw.py')
@@ -182,6 +253,9 @@ if __name__ == '__main__':
     number = []
     volume_mean, volume_sd = [], []
     surface_mean, surface_sd = [], []
+    aspect_ratio_mean, aspect_ratio_sd = [], []
+    solidity_mean, solidity_sd = [], []
+    centroid_mean, centroid_sd = [], []
     for fl in file_list:
         file_name = os.path.join(args.root, 'input', fl, 'criteria.json')
         print('read: {}'.format(file_name))
@@ -199,6 +273,18 @@ if __name__ == '__main__':
             surface_mean.append(criteria_value['surface_mean'])
         if 'surface_sd' in criteria_list:
             surface_sd.append(criteria_value['surface_sd'])
+        if 'aspect_ratio_mean' in criteria_list:
+            aspect_ratio_mean.append(criteria_value['aspect_ratio_mean'])
+        if 'aspect_ratio_sd' in criteria_list:
+            aspect_ratio_sd.append(criteria_value['aspect_ratio_sd'])
+        if 'solidity_mean' in criteria_list:
+            solidity_mean.append(criteria_value['solidity_mean'])
+        if 'solidity_sd' in criteria_list:
+            solidity_sd.append(criteria_value['solidity_sd'])
+        if 'centroid_mean' in criteria_list:
+            centroid_mean.append(criteria_value['centroid_mean'])
+        if 'centroid_sd' in criteria_list:
+            centroid_sd.append(criteria_value['centroid_sd'])
 
     # Time Scale
     dt = 10 / float(60 * 24)
@@ -213,3 +299,6 @@ if __name__ == '__main__':
     gd.graph_draw_volume(time_point, volume_mean, volume_sd)
     gd.graph_draw_surface(time_point, surface_mean, surface_sd)
     gd.graph_draw_surface_volume(time_point, volume_mean, volume_sd, surface_mean, surface_sd)
+    gd.graph_draw_aspect_ratio(time_point, aspect_ratio_mean, aspect_ratio_sd)
+    gd.graph_draw_solidity(time_point, solidity_mean, solidity_sd)
+    gd.graph_draw_centroid(time_point, centroid_mean, centroid_sd)
