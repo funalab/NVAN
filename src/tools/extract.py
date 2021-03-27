@@ -69,7 +69,7 @@ def main(argv=None):
     # Resolution
     spatial_resolution = np.array(eval(args.spatial_resolution))
     voxel_convert_scale = spatial_resolution[0] * spatial_resolution[1] * spatial_resolution[2]
-    spatial_resolution /= np.min(spatial_resolution)
+    # spatial_resolution /= np.min(spatial_resolution)
     time_resolution = eval(args.time_resolution)
 
     # Make Directory
@@ -174,7 +174,7 @@ def main(argv=None):
                 img_ero = img_bin - morphology.erosion(img_bin, selem=kernel)
                 img_area += img_ero * n
 
-                img_bin = np.array(transform.resize(img_bin, ip_size, order=1, preserve_range=True) > 0) * 1
+                img_bin = np.array(transform.resize(img_bin * 255, ip_size, order=1, preserve_range=True) > 0) * 1
                 p = measure.regionprops(img_bin)[0]
                 try:
                     aspect_ratio.append(p.major_axis_length / p.minor_axis_length)
