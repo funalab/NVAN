@@ -69,7 +69,7 @@ def main(argv=None):
     # Resolution
     spatial_resolution = np.array(eval(args.spatial_resolution))
     voxel_convert_scale = spatial_resolution[0] * spatial_resolution[1] * spatial_resolution[2]
-    spatial_resolution /= np.min(spatial_resolution)
+    # spatial_resolution /= np.min(spatial_resolution)
     time_resolution = eval(args.time_resolution)
 
     # Make Directory
