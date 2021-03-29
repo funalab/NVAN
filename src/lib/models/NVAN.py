@@ -127,6 +127,34 @@ class NVAN(nn.Module):
 
     def hybrid_focus_procedure(self, energy_matrix):
         batch, view, time = energy_matrix.shape
+        # e_sig: [batch, view, time]
+        e_sig = torch.sigmoid(energy_matrix)
+
+        beta = []
+        for t in range(time):
+            beta_t = e_sig[:,:,t]
+            beta_t_min = torch.min(beta_t, dim=1)[0].unsqueeze(1)
+            beta_t_max = torch.max(beta_t, dim=1)[0].unsqueeze(1)
+            beta.append(torch.div(beta_t - beta_t_min, beta_t_max - beta_t_min + self.eps))
+        beta = torch.stack(beta).permute(1, 2, 0)
+
+        # e_hat: [batch, view, time]
+        e_hat = []
+        for v in range(self.input_dim):
+            e_sig_v = e_sig[:,v]
+            e_sig_v_min = torch.min(e_sig_v, dim=1)[0].unsqueeze(1)
+            e_sig_v_max = torch.max(e_sig_v, dim=1)[0].unsqueeze(1)
+            e_hat.append(torch.div(e_sig_v - e_sig_v_min, e_sig_v_max - e_sig_v_min + self.eps))
+        e_hat = torch.stack(e_hat).permute(1, 0, 2)
+        e_hat = torch.mul(e_hat, beta)
+        e_hat = torch.mul(e_hat, self.sharpening_factor)
+
+        # attention_matrix: [batch, view, time]
+        attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
+        return attention_matrix
+
+    def hybrid_focus_procedure_original(self, energy_matrix):
+        batch, view, time = energy_matrix.shape
         # beta_top: [batch, view]
         beta_top = torch.sum(self.relu(energy_matrix), dim=2)
         # beta: [batch, view]
