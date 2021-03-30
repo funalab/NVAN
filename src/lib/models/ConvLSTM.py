@@ -38,17 +38,20 @@ class ConvLSTM(nn.Module):
             num_layers,
             hidden_dim,
             dropout,
+            ip_size,
             lossfun,
             phase='train'
             ):
         super(ConvLSTM, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
-        self.conv = nn.Conv3d(1, 16, 5, 1, 2)
+        self.conv1 = nn.Conv3d(1, 8, 5, 1, 2)
+        self.conv2 = nn.Conv3d(8, 16, 5, 1, 2)
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool3d(2, stride=2)
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
-        self.affine = nn.Linear(hidden_dim, num_classes)
+        self.lstm = nn.LSTM(int((ip_size[0]/4) * (ip_size[1]/4) * (ip_size[2]/4) * 16),
+                            hidden_dim, num_layers, dropout=dropout, bidirectional=True)
+        self.affine = nn.Linear(hidden_dim * 2, num_classes)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
@@ -64,18 +67,19 @@ class ConvLSTM(nn.Module):
 
     def forward(self, input):
         # input: [batch, time, 1, z, y, x]
-        batch, time, _, _, _, _ = input.shape
+        batch, time, _, _, _ = input.shape
+        input = input.unsqueeze(2)
         hidden_vec = []
         for t in range(time):
-            h = self.pool(self.relu(self.conv(input[:,t])))
+            h = self.pool(self.relu(self.conv1(input[:,t])))
+            h = self.pool(self.relu(self.conv2(h)))
             hidden_vec.append(h)
-        hidden_vec = torch.stack(hidden_vec).permute(1, 0, 2)
-        lstm_out, _ = self.lstm(input)
-        lstm_out = lstm_out
+        hidden_vec = torch.stack(hidden_vec).permute(1, 0, 2, 3, 4, 5).view(batch, time, -1)
+        lstm_out, _ = self.lstm(hidden_vec)
         attn_out, attn_weights = self.attention(lstm_out)
         logits = self.affine(attn_out)
 
         if self.phase == 'test':
-            return logits, attn_weights
+            return logits, None
         else:
             return logits

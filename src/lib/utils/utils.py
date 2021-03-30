@@ -12,7 +12,7 @@ from src.lib.datasets.dataset import EmbryoDataset, EmbryoImageDataset
 
 
 def get_model(args):
-    model_list = ['LSTM', 'LSTMAttention', 'LSTMMultiAttention', 'MuVAN', 'NVAN', 'ConvLSTM']
+    model_list = ['LSTM', 'LSTMAttention', 'LSTMMultiAttention', 'MuVAN', 'NVAN']
     if args.model in model_list:
         model = eval(args.model)(
                 input_dim=args.input_dim,
@@ -31,6 +31,17 @@ def get_model(args):
                 hidden_dim=args.hidden_dim,
                 num_head=args.num_head,
                 dropout=args.dropout,
+                lossfun=eval(args.lossfun),
+                phase=args.phase
+        )
+    elif args.model == 'ConvLSTM':
+        model = eval(args.model)(
+                input_dim=args.input_dim,
+                num_classes=args.num_classes,
+                num_layers=args.num_layers,
+                hidden_dim=args.hidden_dim,
+                dropout=args.dropout,
+                ip_size=eval(args.ip_size),
                 lossfun=eval(args.lossfun),
                 phase=args.phase
         )
@@ -59,13 +70,15 @@ def get_dataset(args):
             root=args.root_path,
             split_list=args.split_list_train,
             train=True,
-            delete_tp=args.delete_tp
+            delete_tp=args.delete_tp,
+            ip_size=eval(args.ip_size)
         )
         validation_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_validation,
             train=False,
-            delete_tp=None
+            delete_tp=0,
+            ip_size=eval(args.ip_size)
         )
     else:
         raise ValueError('Unknown model name: {}'.format(args.model))
@@ -87,7 +100,8 @@ def get_test_dataset(args):
             root=args.root_path,
             split_list=args.split_list_test,
             train=False,
-            delete_tp=None
+            delete_tp=0,
+            ip_size=eval(args.ip_size)
         )
     else:
         raise ValueError('Unknown model name: {}'.format(args.model))

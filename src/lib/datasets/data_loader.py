@@ -2,8 +2,6 @@ import sys
 import os
 import csv
 import numpy as np
-import skimage.io as io
-from glob import glob
 
 from torch.nn.utils.rnn import pad_sequence
 
@@ -30,11 +28,6 @@ def label_loader(file_list):
             label.append(1)
         else:
             sys.exit()
-
-def image_loader(path):
-    img_path = np.sort(glob(os.path.join(path, '*tif')))
-    imgs = [io.imread(i) for i in img_path]
-    return imgs
 
 def pad_collate(batch):
     (xx, yy) = zip(*batch)
