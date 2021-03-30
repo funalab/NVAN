@@ -36,28 +36,52 @@ def get_model(args):
     return model
 
 def get_dataset(args):
-    train_dataset = EmbryoDataset(
-        root=args.root_path,
-        split_list=args.split_list_train,
-        train=True,
-        delete_tp=args.delete_tp
-    )
-    validation_dataset = EmbryoDataset(
-        root=args.root_path,
-        split_list=args.split_list_validation,
-        train=False,
-        delete_tp=None
-    )
+    if args.model != 'ConvLSTM':
+        train_dataset = EmbryoDataset(
+            root=args.root_path,
+            split_list=args.split_list_train,
+            train=True,
+            delete_tp=args.delete_tp
+        )
+        validation_dataset = EmbryoDataset(
+            root=args.root_path,
+            split_list=args.split_list_validation,
+            train=False,
+            delete_tp=None
+        )
+    else:
+        train_dataset = EmbryoImageDataset(
+            root=args.root_path,
+            split_list=args.split_list_train,
+            train=True,
+            delete_tp=args.delete_tp
+        )
+        validation_dataset = EmbryoImageDataset(
+            root=args.root_path,
+            split_list=args.split_list_validation,
+            train=False,
+            delete_tp=None
+        )
+
     return train_dataset, validation_dataset
 
 
 def get_test_dataset(args):
-    test_dataset = EmbryoDataset(
-        root=args.root_path,
-        split_list=args.split_list_test,
-        train=False,
-        delete_tp=None
-    )
+    if args.model != 'ConvLSTM':
+        test_dataset = EmbryoDataset(
+            root=args.root_path,
+            split_list=args.split_list_test,
+            train=False,
+            delete_tp=None
+        )
+    else:
+        test_dataset = EmbryoImageDataset(
+            root=args.root_path,
+            split_list=args.split_list_test,
+            train=False,
+            delete_tp=None
+        )
+
     return test_dataset
 
 def print_args(dataset_args, model_args, updater_args, runtime_args):
