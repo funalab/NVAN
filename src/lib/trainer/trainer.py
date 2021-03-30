@@ -63,9 +63,11 @@ class Trainer(object):
 
             self.optimizer.zero_grad()
             logits = model(input.to(torch.device(self.device)))
-            label = label.type_as(logits)
-            loss = model.loss(logits.squeeze(1), label.to(torch.device(self.device)).view(len(label)))
-            # loss = model.loss(logits, label.to(torch.device(self.device)).view(len(label)))
+            if len(logits[0]) == 1:
+                label = label.type_as(logits)
+                loss = model.loss(logits.squeeze(1), label.to(torch.device(self.device)).view(len(label)))
+            else: # Multi-class classification
+                loss = model.loss(logits, label.to(torch.device(self.device)).view(len(label)))
             loss_list.append(loss.to(torch.device('cpu')).detach())
             loss.backward()
             self.optimizer.step()
@@ -144,9 +146,11 @@ class Tester(object):
 
             output_list.append(prediction.to(torch.device('cpu')).detach())
             truth_list.append(label.detach())
-            label = label.type_as(prediction)
-            loss = model.loss(prediction.squeeze(1), label.to(torch.device(self.device)).view(len(label)))
-            # loss = model.loss(prediction, label.to(torch.device(self.device)).view(len(label)))
+            if len(prediction[0]) == 1:
+                label = label.type_as(prediction)
+                loss = model.loss(prediction.squeeze(1), label.to(torch.device(self.device)).view(len(label)))
+            else: # Multi-class classification
+                loss = model.loss(prediction, label.to(torch.device(self.device)).view(len(label)))
             loss_list.append(loss.to(torch.device('cpu')).detach())
 
         # evaluate
@@ -172,8 +176,10 @@ class Tester(object):
         y_trues, y_preds = [], []
         for y_true, logit in zip(truth, predict):
             y_true = y_true.cpu().numpy()
-            y_pred = [[np.array([1]) if torch.sigmoid(l).cpu() > 0.5 else np.array([0]) for l in logit]]
-            # y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]  # Multi-class classification
+            if len(logit[0]) == 1:
+                y_pred = [[np.array([1]) if torch.sigmoid(l).cpu() > 0.5 else np.array([0]) for l in logit]]
+            else: # Multi-class classification
+                y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
             y_trues.append(y_true)
             y_preds.append(y_pred)
         y_true = np.concatenate(y_trues, axis=0)
@@ -202,8 +208,10 @@ class Tester(object):
         y_trues, y_preds = [], []
         for y_true, logit in zip(truth, predict):
             y_true = y_true.cpu().numpy()
-            y_pred = [[torch.sigmoid(l).cpu().numpy() for l in logit]]
-            # y_pred = [[F.softmax(l, dim=0).cpu().numpy()[1] for l in logit]] # Multi-class classification
+            if len(logit[0]) == 1:
+                y_pred = [[torch.sigmoid(l).cpu().numpy() for l in logit]]
+            else: # Multi-class classification
+                y_pred = [[F.softmax(l, dim=0).cpu().numpy()[1] for l in logit]]
             y_trues.append(y_true)
             y_preds.append(y_pred)
         y_true = np.concatenate(y_trues, axis=0).reshape(len(y_trues))

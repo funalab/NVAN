@@ -72,8 +72,10 @@ class NVAN(nn.Module):
         self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
         self.bn1 = nn.BatchNorm2d(16)
         self.bn2 = nn.BatchNorm2d(32)
-        # self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)  # Multi-class classification
-        self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, 1)
+        if isinstance(lossfun, nn.CrossEntropyLoss):  # Multi-class classification
+            self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+        elif isinstance(lossfun, nn.BCEWithLogitsLoss):
+            self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
