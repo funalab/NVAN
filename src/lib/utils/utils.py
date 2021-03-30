@@ -7,11 +7,13 @@ from src.lib.models.LSTMMultiAttention import LSTMMultiAttention
 from src.lib.models.MuVAN import MuVAN
 from src.lib.models.NVAN import NVAN
 from src.lib.models.Transformer import Transformer
-from src.lib.datasets.dataset import EmbryoDataset
+from src.lib.models.ConvLSTM import ConvLSTM
+from src.lib.datasets.dataset import EmbryoDataset, EmbryoImageDataset
 
 
 def get_model(args):
-    if args.model != 'Transformer':
+    model_list = ['LSTM', 'LSTMAttention', 'LSTMMultiAttention', 'MuVAN', 'NVAN', 'ConvLSTM']
+    if args.model in model_list:
         model = eval(args.model)(
                 input_dim=args.input_dim,
                 num_classes=args.num_classes,
@@ -21,7 +23,7 @@ def get_model(args):
                 lossfun=eval(args.lossfun),
                 phase=args.phase
             )
-    else:
+    elif args.model == 'Transformer':
         model = eval(args.model)(
                 input_dim=args.input_dim,
                 num_classes=args.num_classes,
@@ -32,11 +34,14 @@ def get_model(args):
                 lossfun=eval(args.lossfun),
                 phase=args.phase
         )
-
+    else:
+        raise ValueError('Unknown model name: {}'.format(args.model))
+    
     return model
 
 def get_dataset(args):
-    if args.model != 'ConvLSTM':
+    model_list = ['LSTM', 'LSTMAttention', 'LSTMMultiAttention', 'MuVAN', 'NVAN', 'Transformer']
+    if args.model in model_list:
         train_dataset = EmbryoDataset(
             root=args.root_path,
             split_list=args.split_list_train,
@@ -49,7 +54,7 @@ def get_dataset(args):
             train=False,
             delete_tp=None
         )
-    else:
+    elif args.model == 'ConvLSTM':
         train_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_train,
@@ -62,26 +67,31 @@ def get_dataset(args):
             train=False,
             delete_tp=None
         )
+    else:
+        raise ValueError('Unknown model name: {}'.format(args.model))
 
     return train_dataset, validation_dataset
 
 
 def get_test_dataset(args):
-    if args.model != 'ConvLSTM':
+    model_list = ['LSTM', 'LSTMAttention', 'LSTMMultiAttention', 'MuVAN', 'NVAN', 'Transformer']
+    if args.model in model_list:
         test_dataset = EmbryoDataset(
             root=args.root_path,
             split_list=args.split_list_test,
             train=False,
             delete_tp=None
         )
-    else:
+    elif args.model == 'ConvLSTM':
         test_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_test,
             train=False,
             delete_tp=None
         )
-
+    else:
+        raise ValueError('Unknown model name: {}'.format(args.model))
+    
     return test_dataset
 
 def print_args(dataset_args, model_args, updater_args, runtime_args):
