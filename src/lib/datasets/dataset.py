@@ -40,9 +40,9 @@ class EmbryoDataset(Dataset):
         return np.array([(v - np.mean(v)) / (np.std(v) + self.eps) for v in vec]).transpose(1, 0).astype(np.float32)
 
     def augmentation(self, vec):
-        s = int(random.uniform(0, self.delete_tp))
+        #s = int(random.uniform(0, self.delete_tp))
         e = int(random.uniform(0, self.delete_tp)) + 1
-        vec_aug = np.array(vec[s:-e]).astype(np.float32)
+        vec_aug = np.array(vec[:-e]).astype(np.float32)
         return vec_aug
 
     def __getitem__(self, i):

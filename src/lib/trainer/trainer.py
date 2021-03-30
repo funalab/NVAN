@@ -48,9 +48,9 @@ class Trainer(object):
                 model.to(torch.device(self.device))
                 best_epoch = epoch
                 print("Saved better model selected by validation.")
-        with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
-            json.dump({'best {}'.format(self.eval_metrics): self._best_accuracy,
-                        'best epoch': best_epoch}, f, indent=4)
+                with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
+                    json.dump({'best {}'.format(self.eval_metrics): self._best_accuracy,
+                               'best epoch': best_epoch}, f, indent=4)
         print('best f1: {}'.format(self._best_accuracy))
         print('best epoch: {}'.format(best_epoch))
 
@@ -63,7 +63,9 @@ class Trainer(object):
 
             self.optimizer.zero_grad()
             logits = model(input.to(torch.device(self.device)))
-            loss = model.loss(logits, label.to(torch.device(self.device)).view(len(label)))
+            label = label.type_as(logits)
+            loss = model.loss(logits.squeeze(1), label.to(torch.device(self.device)).view(len(label)))
+            # loss = model.loss(logits, label.to(torch.device(self.device)).view(len(label)))
             loss_list.append(loss.to(torch.device('cpu')).detach())
             loss.backward()
             self.optimizer.step()
@@ -142,7 +144,9 @@ class Tester(object):
 
             output_list.append(prediction.to(torch.device('cpu')).detach())
             truth_list.append(label.detach())
-            loss = model.loss(prediction, label.to(torch.device(self.device)).view(len(label)))
+            label = label.type_as(prediction)
+            loss = model.loss(prediction.squeeze(1), label.to(torch.device(self.device)).view(len(label)))
+            # loss = model.loss(prediction, label.to(torch.device(self.device)).view(len(label)))
             loss_list.append(loss.to(torch.device('cpu')).detach())
 
         # evaluate
@@ -168,7 +172,8 @@ class Tester(object):
         y_trues, y_preds = [], []
         for y_true, logit in zip(truth, predict):
             y_true = y_true.cpu().numpy()
-            y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
+            y_pred = [[np.array([1]) if torch.sigmoid(l).cpu() > 0.5 else np.array([0]) for l in logit]]
+            # y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]  # Multi-class classification
             y_trues.append(y_true)
             y_preds.append(y_pred)
         y_true = np.concatenate(y_trues, axis=0)
@@ -197,7 +202,8 @@ class Tester(object):
         y_trues, y_preds = [], []
         for y_true, logit in zip(truth, predict):
             y_true = y_true.cpu().numpy()
-            y_pred = [[F.softmax(l, dim=0).cpu().numpy()[1] for l in logit]]
+            y_pred = [[torch.sigmoid(l).cpu().numpy() for l in logit]]
+            # y_pred = [[F.softmax(l, dim=0).cpu().numpy()[1] for l in logit]] # Multi-class classification
             y_trues.append(y_true)
             y_preds.append(y_pred)
         y_true = np.concatenate(y_trues, axis=0).reshape(len(y_trues))
@@ -220,6 +226,7 @@ class Tester(object):
         plt.ylim([-0.05, 1.05])
         plt.legend(loc=4, fontsize=18)
         plt.savefig(os.path.join(self.save_dir, 'figs', 'AUROC.pdf'))
+        plt.close()
         return auroc
 
     def _vis_aupr(self, y_pred, y_true):
@@ -235,6 +242,7 @@ class Tester(object):
         plt.ylim([-0.05, 1.05])
         plt.legend(loc=3, fontsize=18)
         plt.savefig(os.path.join(self.save_dir, 'figs', 'AUPR.pdf'))
+        plt.close()
         return aupr
 
     def vis_attn_weights(self, attn_weights_list, predict, truth):

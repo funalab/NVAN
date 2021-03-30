@@ -70,7 +70,10 @@ class NVAN(nn.Module):
         self.pool = nn.MaxPool2d(2, stride=2)
         self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
         self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
-        self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.bn2 = nn.BatchNorm2d(32)
+        # self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)  # Multi-class classification
+        self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
@@ -183,8 +186,10 @@ class NVAN(nn.Module):
         context_matrix = torch.matmul(attention_matrix.unsqueeze(2), hidden_matrix[:,:,:-1]).squeeze(2)
         # cat_matrix: [batch, channel, view, dim]
         cat_matrix = torch.stack([hidden_matrix[:,:,-1,:], context_matrix]).permute(1, 0, 2, 3)
-        logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
-        logit = self.pool(self.relu(self.attn_fusion_2(logit)))
+        logit = self.pool(self.relu(self.bn1(self.attn_fusion_1(cat_matrix))))
+        logit = self.pool(self.relu(self.bn2(self.attn_fusion_2(logit))))
+        #logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
+        #logit = self.pool(self.relu(self.attn_fusion_2(logit)))
         logit = self.affine(logit.view(logit.size()[0], -1))
         return logit
 
@@ -201,6 +206,7 @@ class NVAN(nn.Module):
         energy_matrix = self.multi_view_attention(hidden_matrix)
         # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
+        # print('min: {}, max: {}'.format(attention_matrix.min(), attention_matrix.max()))
         # context_matrix: [batch, view, dim]
         logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
 
