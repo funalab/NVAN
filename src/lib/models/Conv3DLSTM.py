@@ -74,7 +74,7 @@ class Conv3DLSTM(nn.Module):
         hidden_vec = []
         for t in range(time):
             h = self.pool(self.relu(self.bn1(self.conv1(input[:,t]))))
-            h = self.pool(self.relu(self.bn1(self.conv2(h))))
+            h = self.pool(self.relu(self.bn2(self.conv2(h))))
             hidden_vec.append(h)
         hidden_vec = torch.stack(hidden_vec).permute(1, 0, 2, 3, 4, 5).view(batch, time, -1)
         lstm_out, _ = self.lstm(hidden_vec)

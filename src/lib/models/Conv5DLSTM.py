@@ -82,7 +82,7 @@ class Conv5DLSTM(nn.Module):
             h = self.pool2d(self.relu(self.bn2d2(self.conv2d2(h))))
             hidden_vec_2d.append(h)
             h = self.pool3d(self.relu(self.bn3d1(self.conv3d1(image_3d[:,t]))))
-            h = self.pool3d(self.relu(self.bn3d1(self.conv3d2(h))))
+            h = self.pool3d(self.relu(self.bn3d2(self.conv3d2(h))))
             hidden_vec_3d.append(h)
         hidden_vec_2d = torch.stack(hidden_vec_2d).permute(1, 0, 2, 3, 4).view(batch, time, -1)
         hidden_vec_3d = torch.stack(hidden_vec_3d).permute(1, 0, 2, 3, 4, 5).view(batch, time, -1)
