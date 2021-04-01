@@ -7,8 +7,9 @@ from src.lib.models.LSTMMultiAttention import LSTMMultiAttention
 from src.lib.models.MuVAN import MuVAN
 from src.lib.models.NVAN import NVAN
 from src.lib.models.Transformer import Transformer
-from src.lib.models.ConvLSTM import ConvLSTM
-from src.lib.models.ConvLSTM_2D import ConvLSTM_2D
+from src.lib.models.Conv2DLSTM import Conv2DLSTM
+from src.lib.models.Conv3DLSTM import Conv3DLSTM
+from src.lib.models.Conv5DLSTM import Conv5DLSTM
 from src.lib.datasets.dataset import EmbryoDataset, EmbryoImageDataset
 
 
@@ -35,7 +36,7 @@ def get_model(args):
                 lossfun=eval(args.lossfun),
                 phase=args.phase
         )
-    elif args.model == 'ConvLSTM' or 'ConvLSTM_2D':
+    elif args.model == 'Conv2DLSTM' or 'Conv3DLSTM' or 'Conv5DLSTM':
         model = eval(args.model)(
                 input_dim=args.input_dim,
                 num_classes=args.num_classes,
@@ -68,7 +69,7 @@ def get_dataset(args):
             train=False,
             delete_tp=None
         )
-    elif args.model == 'ConvLSTM' or 'ConvLSTM_2D':
+    elif args.model == 'Conv2DLSTM' or 'Conv3DLSTM' or 'Conv5DLSTM':
         train_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_train,
@@ -101,7 +102,7 @@ def get_test_dataset(args):
             train=False,
             delete_tp=None
         )
-    elif args.model == 'ConvLSTM':
+    elif args.model == 'Conv2DLSTM' or 'Conv3DLSTM' or 'Conv5DLSTM':
         test_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_test,
