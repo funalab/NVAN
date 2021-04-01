@@ -258,7 +258,10 @@ class Tester(object):
         cnt = 0
         for y_true, logit, aw in zip(truth, predict, attn_weights_list):
             y_true = y_true.cpu().numpy()
-            y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
+            if len(logit[0]) == 1:
+                y_pred = [[np.array([1]) if torch.sigmoid(l).cpu() > 0.5 else np.array([0]) for l in logit]]
+            else: # Multi-class classification
+                y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
             aw = aw.squeeze(0).cpu().numpy()
             filename = os.path.join(self.save_dir, 'figs', 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
             self.make_heatmap(aw, y_pred, y_true, filename)
