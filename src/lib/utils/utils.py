@@ -76,7 +76,8 @@ def get_dataset(args):
             basename=args.basename,
             train=True,
             delete_tp=args.delete_tp,
-            ip_size=eval(args.ip_size)
+            ip_size=eval(args.ip_size),
+            model=args.model
         )
         validation_dataset = EmbryoImageDataset(
             root=args.root_path,
@@ -84,7 +85,8 @@ def get_dataset(args):
             basename=args.basename,
             train=False,
             delete_tp=0,
-            ip_size=eval(args.ip_size)
+            ip_size=eval(args.ip_size),
+            model=args.model
         )
     else:
         raise ValueError('Unknown model name: {}'.format(args.model))
@@ -109,7 +111,8 @@ def get_test_dataset(args):
             basename=args.basename,
             train=False,
             delete_tp=0,
-            ip_size=eval(args.ip_size)
+            ip_size=eval(args.ip_size),
+            model=args.model
         )
     else:
         raise ValueError('Unknown model name: {}'.format(args.model))

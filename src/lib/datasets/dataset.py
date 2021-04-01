@@ -59,7 +59,7 @@ class EmbryoDataset(Dataset):
 
 
 class EmbryoImageDataset(Dataset):
-    def __init__(self, root=None, split_list=None, basename='images', train=True, delete_tp=20, ip_size=[16,48,48]):
+    def __init__(self, root=None, split_list=None, basename='images', train=True, delete_tp=50, ip_size=[16,48,48], model='Conv2DLSTM'):
         self.root = root
         self.basename = basename
         self.train = train
@@ -73,6 +73,7 @@ class EmbryoImageDataset(Dataset):
         self.eps = 0.000001
         self.delete_tp = delete_tp
         self.ip_size = ip_size
+        self.model = model
 
     def __len__(self):
         return len(self.file_list)
@@ -106,5 +107,13 @@ class EmbryoImageDataset(Dataset):
         return label
 
     def __getitem__(self, i):
-        images, label = self.get_image(i), self.get_label(i)
-        return torch.tensor(images), torch.tensor(label)
+        if self.model in ['Conv2DLSTM', 'Conv3DLSTM']:
+            images, label = self.get_image(i), self.get_label(i)
+            return torch.tensor(images), torch.tensor(label)
+        elif self.model == 'Conv5DLSTM':
+            self.basename = 'images_BF'
+            images_2d = self.get_image(i)
+            self.basename = 'images'
+            images_3d = self.get_image(i)
+            label = self.get_label(i)
+            return (torch.tensor(images_2d), torch.tensor(images_3d)), torch.tensor(label)
