@@ -46,7 +46,10 @@ class LSTMMultiAttention(nn.Module):
         self.pool = nn.MaxPool2d(2, stride=2)
         self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
         self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
-        self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+        if isinstance(lossfun, nn.CrossEntropyLoss):  # Multi-class classification
+            self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+        elif isinstance(lossfun, nn.BCEWithLogitsLoss):
+            self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase

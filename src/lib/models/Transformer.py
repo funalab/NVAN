@@ -53,10 +53,10 @@ class Transformer(nn.Module):
         self.embed = Embeddings(input_dim, hidden_dim)
 
         # Fully-Connected Layer
-        self.fc = nn.Linear(
-            hidden_dim,
-            num_classes
-        )
+        if isinstance(lossfun, nn.CrossEntropyLoss):  # Multi-class classification
+            self.fc = nn.Linear(hidden_dim, num_classes)
+        elif isinstance(lossfun, nn.BCEWithLogitsLoss):
+            self.fc = nn.Linear(hidden_dim, 1)
         self.loss = lossfun
         self.phase = phase
 

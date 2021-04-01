@@ -17,12 +17,14 @@ class LSTM(nn.Module):
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
-        self.hidden2tag = nn.Linear(hidden_dim*2, num_classes)
+        if isinstance(lossfun, nn.CrossEntropyLoss):  # Multi-class classification
+            self.affine = nn.Linear(hidden_dim*2, num_classes)
+        elif isinstance(lossfun, nn.BCEWithLogitsLoss):
+            self.affine = nn.Linear(hidden_dim*2, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
 
     def forward(self, input):
         lstm_out, _ = self.lstm(input.view(input.shape[1], input.shape[0], -1))
-        tag_space = self.hidden2tag(lstm_out[-1, :, :])
-        tag_scores = self.softmax(tag_space)
-        return tag_scores
+        logits = self.affine(lstm_out[-1, :, :])
+        return logits

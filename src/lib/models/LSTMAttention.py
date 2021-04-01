@@ -16,8 +16,11 @@ class LSTMAttention(nn.Module):
         super(LSTMAttention, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, dropout=dropout, bidirectional=False)
-        self.hidden2tag = nn.Linear(hidden_dim, num_classes)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
+        if isinstance(lossfun, nn.CrossEntropyLoss):  # Multi-class classification
+            self.affine = nn.Linear(hidden_dim*2, num_classes)
+        elif isinstance(lossfun, nn.BCEWithLogitsLoss):
+            self.affine = nn.Linear(hidden_dim*2, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
@@ -33,10 +36,9 @@ class LSTMAttention(nn.Module):
         lstm_out, (final_hidden_state, _) = self.lstm(input.permute(1, 0, 2))
         lstm_out = lstm_out.permute(1, 0, 2)
         attn_out, attn_weights = self.attention(lstm_out, final_hidden_state)
-        tag_space = self.hidden2tag(attn_out)
-        tag_scores = self.softmax(tag_space)
+        logits = self.affine(attn_out)
 
         if self.phase == 'test':
-            return tag_scores, attn_weights
+            return logits, attn_weights
         else:
-            return tag_scores
+            return logits

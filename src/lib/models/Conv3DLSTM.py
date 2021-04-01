@@ -53,7 +53,10 @@ class Conv3DLSTM(nn.Module):
         self.pool = nn.MaxPool3d(2, stride=2)
         self.lstm = nn.LSTM(int((ip_size[0]/4) * (ip_size[1]/4) * (ip_size[2]/4) * 16),
                             hidden_dim, num_layers, dropout=dropout, bidirectional=True)
-        self.affine = nn.Linear(hidden_dim * 2, num_classes)
+        if isinstance(lossfun, nn.CrossEntropyLoss):  # Multi-class classification
+            self.affine = nn.Linear(hidden_dim * 2, num_classes)
+        elif isinstance(lossfun, nn.BCEWithLogitsLoss):
+            self.affine = nn.Linear(hidden_dim * 2, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
