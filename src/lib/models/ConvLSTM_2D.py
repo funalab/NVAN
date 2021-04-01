@@ -42,7 +42,7 @@ class ConvLSTM_2D(nn.Module):
             lossfun,
             phase='train'
             ):
-        super(ConvLSTM, self).__init__()
+        super(ConvLSTM_2D, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.conv1 = nn.Conv2d(1, 8, 5, 1, 2)
@@ -74,7 +74,7 @@ class ConvLSTM_2D(nn.Module):
             h = self.pool(self.relu(self.conv1(input[:,t])))
             h = self.pool(self.relu(self.conv2(h)))
             hidden_vec.append(h)
-        hidden_vec = torch.stack(hidden_vec).permute(1, 0, 2, 3, 4, 5).view(batch, time, -1)
+        hidden_vec = torch.stack(hidden_vec).permute(1, 0, 2, 3, 4).view(batch, time, -1)
         lstm_out, _ = self.lstm(hidden_vec)
         attn_out, attn_weights = self.attention(lstm_out)
         logits = self.affine(attn_out)
