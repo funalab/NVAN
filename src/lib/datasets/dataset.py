@@ -10,8 +10,9 @@ from torch.utils.data import Dataset
 from src.lib.datasets.data_loader import csv_loader, csv_loader_criteria_list
 
 class EmbryoDataset(Dataset):
-    def __init__(self, root=None, split_list=None, train=True, delete_tp=20):
+    def __init__(self, root=None, split_list=None,basename='input', train=True, delete_tp=20):
         self.root = root
+        self.basename = basename
         self.train = train
         with open(split_list, 'r') as f:
             self.file_list = [line.rstrip() for line in f]
@@ -19,7 +20,7 @@ class EmbryoDataset(Dataset):
             self.born_list = [line.rstrip() for line in f]
         with open(os.path.join(self.root, 'labels', 'abort.txt'), 'r') as f:
             self.abort_list = [line.rstrip() for line in f]
-        self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, 'input', self.file_list[0], 'criteria.csv'))
+        self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, basename, self.file_list[0], 'criteria.csv'))
         self.eps = 0.000001
         self.delete_tp = delete_tp
 
@@ -27,7 +28,7 @@ class EmbryoDataset(Dataset):
         return len(self.file_list)
 
     def get_input(self, i):
-        input = csv_loader(os.path.join(self.root, 'input', self.file_list[i], 'criteria.csv'))
+        input = csv_loader(os.path.join(self.root, self.basename, self.file_list[i], 'criteria.csv'))
         return input
 
     def get_label(self, i):
@@ -58,8 +59,9 @@ class EmbryoDataset(Dataset):
 
 
 class EmbryoImageDataset(Dataset):
-    def __init__(self, root=None, split_list=None, train=True, delete_tp=20, ip_size=[16,48,48]):
+    def __init__(self, root=None, split_list=None, basename='images', train=True, delete_tp=20, ip_size=[16,48,48]):
         self.root = root
+        self.basename = basename
         self.train = train
         with open(split_list, 'r') as f:
             self.file_list = [line.rstrip() for line in f]
@@ -67,7 +69,7 @@ class EmbryoImageDataset(Dataset):
             self.born_list = [line.rstrip() for line in f]
         with open(os.path.join(self.root, 'labels', 'abort.txt'), 'r') as f:
             self.abort_list = [line.rstrip() for line in f]
-        self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, 'input', self.file_list[0], 'criteria.csv'))
+        self.criteria_list = None
         self.eps = 0.000001
         self.delete_tp = delete_tp
         self.ip_size = ip_size
@@ -76,22 +78,22 @@ class EmbryoImageDataset(Dataset):
         return len(self.file_list)
 
     def get_image(self, i):
-        image_path = np.sort(glob(os.path.join(self.root, 'images_preprocess', self.file_list[i], '*.tif')))
+        image_path = np.sort(glob(os.path.join(self.root, '{}_preprocess'.format(self.basename), self.file_list[i], '*.tif')))
         if len(image_path) == 0:
-            image_path = np.sort(glob(os.path.join(self.root, 'images', self.file_list[i], '*.tif')))
+            image_path = np.sort(glob(os.path.join(self.root, self.basename, self.file_list[i], '*.tif')))
             images = []
             for p in range(len(image_path)):
                 img = io.imread(image_path[p])
                 img = transform.resize(img, self.ip_size, order=1, preserve_range=True)
                 img = (img - np.mean(img)) / np.std(img)
                 images.append(img)
-            os.makedirs(os.path.join(self.root, 'images_preprocess', self.file_list[i]), exist_ok=True)
-            filename = os.path.join(self.root, 'images_preprocess', self.file_list[i], 'images.tif')
+            os.makedirs(os.path.join(self.root, '{}_preprocess'.format(self.basename), self.file_list[i]), exist_ok=True)
+            filename = os.path.join(self.root, '{}_preprocess'.format(self.basename), self.file_list[i], 'images.tif')
             io.imsave(filename, np.array(images).astype(np.float32))
         else:
             e = int(random.uniform(0, self.delete_tp)) + 1
             images = io.imread(image_path[0])[:-e]
-            
+
         return np.array(images).astype(np.float32)
 
     def get_label(self, i):

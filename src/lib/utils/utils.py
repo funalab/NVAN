@@ -8,6 +8,7 @@ from src.lib.models.MuVAN import MuVAN
 from src.lib.models.NVAN import NVAN
 from src.lib.models.Transformer import Transformer
 from src.lib.models.ConvLSTM import ConvLSTM
+from src.lib.models.ConvLSTM_2D import ConvLSTM_2D
 from src.lib.datasets.dataset import EmbryoDataset, EmbryoImageDataset
 
 
@@ -34,7 +35,7 @@ def get_model(args):
                 lossfun=eval(args.lossfun),
                 phase=args.phase
         )
-    elif args.model == 'ConvLSTM':
+    elif args.model == 'ConvLSTM' or 'ConvLSTM_2D':
         model = eval(args.model)(
                 input_dim=args.input_dim,
                 num_classes=args.num_classes,
@@ -47,7 +48,7 @@ def get_model(args):
         )
     else:
         raise ValueError('Unknown model name: {}'.format(args.model))
-    
+
     return model
 
 def get_dataset(args):
@@ -56,19 +57,22 @@ def get_dataset(args):
         train_dataset = EmbryoDataset(
             root=args.root_path,
             split_list=args.split_list_train,
+            basename=args.basename,
             train=True,
             delete_tp=args.delete_tp
         )
         validation_dataset = EmbryoDataset(
             root=args.root_path,
             split_list=args.split_list_validation,
+            basename=args.basename,
             train=False,
             delete_tp=None
         )
-    elif args.model == 'ConvLSTM':
+    elif args.model == 'ConvLSTM' or 'ConvLSTM_2D':
         train_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_train,
+            basename=args.basename,
             train=True,
             delete_tp=args.delete_tp,
             ip_size=eval(args.ip_size)
@@ -76,6 +80,7 @@ def get_dataset(args):
         validation_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_validation,
+            basename=args.basename,
             train=False,
             delete_tp=0,
             ip_size=eval(args.ip_size)
@@ -92,6 +97,7 @@ def get_test_dataset(args):
         test_dataset = EmbryoDataset(
             root=args.root_path,
             split_list=args.split_list_test,
+            basename=args.basename,
             train=False,
             delete_tp=None
         )
@@ -99,6 +105,7 @@ def get_test_dataset(args):
         test_dataset = EmbryoImageDataset(
             root=args.root_path,
             split_list=args.split_list_test,
+            basename=args.basename,
             train=False,
             delete_tp=0,
             ip_size=eval(args.ip_size)

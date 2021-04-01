@@ -15,6 +15,8 @@ def create_dataset_parser(remaining_argv, **conf_dict):
                         help='/path/to/validation_list.txt (list of {train,validation} files)')
     parser.add_argument('--input_format', choices=input_formats,
                         help='Input format {"csv"}')
+    parser.add_argument('--basename', type=str,
+                        help='basename of input directory')
     args, remaining_argv = parser.parse_known_args(remaining_argv)
 
     return parser, args, remaining_argv
