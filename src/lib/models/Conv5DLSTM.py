@@ -50,7 +50,7 @@ class Conv5DLSTM(nn.Module):
         self.conv3d1 = nn.Conv3d(1, 8, 5, 1, 2)
         self.conv3d2 = nn.Conv3d(8, 16, 5, 1, 2)
         self.relu = nn.ReLU()
-        self.pool2d = nn.MaxPool3d(2, stride=2)
+        self.pool2d = nn.MaxPool2d(2, stride=2)
         self.pool3d = nn.MaxPool3d(2, stride=2)
         self.lstm = nn.LSTM(int((ip_size[0]/4) * (ip_size[1]/4) * (ip_size[2]/4) * 16 + (ip_size[1]/4) * (ip_size[2]/4) * 16),
                             hidden_dim, num_layers, dropout=dropout, bidirectional=True)
@@ -69,11 +69,9 @@ class Conv5DLSTM(nn.Module):
         return new_hidden_state, soft_attn_weights
 
     def forward(self, input):
-        # input: [batch, time, 1, z, y, x]
-        image_2d, image_3d = input
+        image_2d = input[:,:,0].unsqueeze(2)
+        image_3d = input[:,:,1:].unsqueeze(2)
         batch, time, _, _, _ = image_2d.shape
-        image_2d = image_2d.unsqueeze(2)
-        image_3d = image_3d.unsqueeze(2)
         hidden_vec_2d, hidden_vec_3d = [], []
         for t in range(time):
             h = self.pool2d(self.relu(self.conv2d1(image_2d[:,t])))
@@ -84,7 +82,7 @@ class Conv5DLSTM(nn.Module):
             hidden_vec_3d.append(h)
         hidden_vec_2d = torch.stack(hidden_vec_2d).permute(1, 0, 2, 3, 4).view(batch, time, -1)
         hidden_vec_3d = torch.stack(hidden_vec_3d).permute(1, 0, 2, 3, 4, 5).view(batch, time, -1)
-        hidden_vec = torch.cat(hidden_vec_2d, hidden_vec_3d)
+        hidden_vec = torch.cat((hidden_vec_2d, hidden_vec_3d), dim=2)
         lstm_out, _ = self.lstm(hidden_vec)
         attn_out, attn_weights = self.attention(lstm_out)
         logits = self.affine(attn_out)

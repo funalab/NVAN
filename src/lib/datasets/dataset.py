@@ -92,8 +92,11 @@ class EmbryoImageDataset(Dataset):
             filename = os.path.join(self.root, '{}_preprocess'.format(self.basename), self.file_list[i], 'images.tif')
             io.imsave(filename, np.array(images).astype(np.float32))
         else:
-            e = int(random.uniform(0, self.delete_tp)) + 1
-            images = io.imread(image_path[0])[:-e]
+            if self.model == 'Conv5DLSTM':
+                images = io.imread(image_path[0])[:-self.e]
+            else:
+                e = int(random.uniform(0, self.delete_tp)) + 1
+                images = io.imread(image_path[0])[:-e]
 
         return np.array(images).astype(np.float32)
 
@@ -111,9 +114,11 @@ class EmbryoImageDataset(Dataset):
             images, label = self.get_image(i), self.get_label(i)
             return torch.tensor(images), torch.tensor(label)
         elif self.model == 'Conv5DLSTM':
+            self.e = int(random.uniform(0, self.delete_tp)) + 1
             self.basename = 'images_BF'
-            images_2d = self.get_image(i)
+            images_2d = torch.tensor(self.get_image(i)).unsqueeze(1)
             self.basename = 'images'
-            images_3d = self.get_image(i)
+            images_3d = torch.tensor(self.get_image(i))
+            images = torch.cat((images_2d, images_3d), dim=1)
             label = self.get_label(i)
-            return (torch.tensor(images_2d), torch.tensor(images_3d)), torch.tensor(label)
+            return images, torch.tensor(label)
