@@ -47,8 +47,12 @@ class Conv5DLSTM(nn.Module):
         self.num_layers = num_layers
         self.conv2d1 = nn.Conv2d(1, 8, 5, 1, 2)
         self.conv2d2 = nn.Conv2d(8, 16, 5, 1, 2)
+        self.bn2d1 = nn.BatchNorm2d(8)
+        self.bn2d2 = nn.BatchNorm2d(16)
         self.conv3d1 = nn.Conv3d(1, 8, 5, 1, 2)
         self.conv3d2 = nn.Conv3d(8, 16, 5, 1, 2)
+        self.bn3d1 = nn.BatchNorm3d(8)
+        self.bn3d2 = nn.BatchNorm3d(16)
         self.relu = nn.ReLU()
         self.pool2d = nn.MaxPool2d(2, stride=2)
         self.pool3d = nn.MaxPool3d(2, stride=2)
@@ -74,11 +78,11 @@ class Conv5DLSTM(nn.Module):
         batch, time, _, _, _ = image_2d.shape
         hidden_vec_2d, hidden_vec_3d = [], []
         for t in range(time):
-            h = self.pool2d(self.relu(self.conv2d1(image_2d[:,t])))
-            h = self.pool2d(self.relu(self.conv2d2(h)))
+            h = self.pool2d(self.relu(self.bn2d1(self.conv2d1(image_2d[:,t]))))
+            h = self.pool2d(self.relu(self.bn2d2(self.conv2d2(h))))
             hidden_vec_2d.append(h)
-            h = self.pool3d(self.relu(self.conv3d1(image_3d[:,t])))
-            h = self.pool3d(self.relu(self.conv3d2(h)))
+            h = self.pool3d(self.relu(self.bn3d1(self.conv3d1(image_3d[:,t]))))
+            h = self.pool3d(self.relu(self.bn3d1(self.conv3d2(h))))
             hidden_vec_3d.append(h)
         hidden_vec_2d = torch.stack(hidden_vec_2d).permute(1, 0, 2, 3, 4).view(batch, time, -1)
         hidden_vec_3d = torch.stack(hidden_vec_3d).permute(1, 0, 2, 3, 4, 5).view(batch, time, -1)

@@ -47,6 +47,8 @@ class Conv2DLSTM(nn.Module):
         self.num_layers = num_layers
         self.conv1 = nn.Conv2d(1, 8, 5, 1, 2)
         self.conv2 = nn.Conv2d(8, 16, 5, 1, 2)
+        self.bn1 = nn.BatchNorm2d(8)
+        self.bn2 = nn.BatchNorm2d(16)        
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(2, stride=2)
         self.lstm = nn.LSTM(int((ip_size[0]/4) * (ip_size[1]/4) * 16),
@@ -71,8 +73,8 @@ class Conv2DLSTM(nn.Module):
         input = input.unsqueeze(2)
         hidden_vec = []
         for t in range(time):
-            h = self.pool(self.relu(self.conv1(input[:,t])))
-            h = self.pool(self.relu(self.conv2(h)))
+            h = self.pool(self.relu(self.bn1(self.conv1(input[:,t]))))
+            h = self.pool(self.relu(self.bn2(self.conv2(h))))
             hidden_vec.append(h)
         hidden_vec = torch.stack(hidden_vec).permute(1, 0, 2, 3, 4).view(batch, time, -1)
         lstm_out, _ = self.lstm(hidden_vec)
