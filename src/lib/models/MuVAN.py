@@ -57,10 +57,14 @@ class MuVAN(nn.Module):
             self.w_c = nn.Linear(self.k, input_dim)
             self.w_d = nn.Linear(input_dim, input_dim)
             # Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True, padding_mode='zeros')
-            self.w_sc_i = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
-            self.w_sc_t = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
-            self.w_cc_1 = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
-            self.w_cc_2 = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
+            w_sc_i, w_sc_t = {}, {}
+            for v in range(input_dim):
+                w_sc_i[str(v)] = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
+                w_sc_t[str(v)] = nn.Conv2d(1, 1, (1, hidden_dim * 2 - self.k + 1), 1, 0)
+            self.w_sc_i = nn.ModuleDict(w_sc_i)
+            self.w_sc_t = nn.ModuleDict(w_sc_t)
+            self.w_cc_1 = nn.Conv2d(1, 1, (input_dim, hidden_dim * 2 - self.k + 1), 1, 0)
+            self.w_cc_2 = nn.Conv2d(1, 1, (input_dim, hidden_dim * 2 - self.k + 1), 1, 0)
 
         # hybrid_focus_procedure
         self.eps = 0.00001
@@ -96,22 +100,22 @@ class MuVAN(nn.Module):
         ''' local self-context '''
         h_t = []
         for v in range(self.input_dim):
-            h_t.append(self.w_sc_t(hidden_matrix[:,v,-1].view(hidden_matrix.shape[0],1,1,-1)))
+            h_t.append(self.w_sc_t[str(v)](hidden_matrix[:,v,-1].view(hidden_matrix.shape[0],1,1,-1)))
         # h_t: [batch, 1, 1, k]
         h_t = torch.sum(torch.stack(h_t), dim=0)
 
         e_ti = []
         for t in range(time_point - 1):
             ''' target self-context '''
-            h_i, h_ti = [], []
+            h_i = []
             for v in range(self.input_dim):
-                h_i.append(self.w_sc_i(hidden_matrix[:,v,t].view(batch_size,1,1,-1)))
+                h_i.append(self.w_sc_i[str(v)](hidden_matrix[:,v,t].view(batch_size,1,1,-1)))
             h_i = torch.sum(torch.stack(h_i), dim=0)
 
             ''' cross-context '''
             h_ti = \
-                self.w_cc_1(hidden_matrix[:,v,-1].view(batch_size,1,1,-1)) + \
-                self.w_cc_2(hidden_matrix[:,v,t].view(batch_size,1,1,-1))
+                self.w_cc_1(hidden_matrix[:,:,-1].unsqueeze(1)) + \
+                self.w_cc_2(hidden_matrix[:,:,t].unsqueeze(1))
 
             ''' previous score information from attention matrix '''
             # hidden_matrix: [batch, view, time, dim]
