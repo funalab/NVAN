@@ -41,8 +41,10 @@ class GraphDraw():
             colors = cmap(float(num) / len(Count))
             plt.plot(Time[:len(Count[num])], Count[num], color=colors, alpha=0.8, linewidth=1.0)
             label.append(self.fn[num][self.fn[num].find('E'):self.fn[num].find('E')+15])
-            if np.max(Count[num][:216]) >= 10:
+            #if np.max(Count[num][:216]) >= 10:
+            if np.max(Count[num][:100]) >= 5:
                 print(self.fn[num])
+                print(np.argmax(Count[num][:100]))
         plt.xlabel('Time [day]', size=12)
         plt.ylabel('Number of Nuclei', size=12)
         if Time[-1] != 0:
