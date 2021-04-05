@@ -190,7 +190,21 @@ class Tester(object):
         recall = metrics.recall_score(y_true, y_pred, pos_label=1)
         f1 = metrics.f1_score(y_true, y_pred, pos_label=1)
 
-        metrics_dict = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
+        TP, TN, FP, FN = 0, 0, 0, 0
+        for i in range(y_true):
+            if y_true[i] == y_pred[i]:
+                if y_true[i] == 1:
+                    TP += 1
+                elif y_true[i] == 0:
+                    TN += 1
+            else:
+                if y_true[i] == 1:
+                    FN += 1
+                elif y_true[i] == 0:
+                    FP += 1
+
+        metrics_dict = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1,
+                        "TP": TP, "TN": TN, "FP": FP, "FN": FN}
 
         print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
         print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
