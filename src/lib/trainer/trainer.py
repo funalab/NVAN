@@ -191,7 +191,7 @@ class Tester(object):
         f1 = metrics.f1_score(y_true, y_pred, pos_label=1)
 
         TP, TN, FP, FN = 0, 0, 0, 0
-        for i in range(y_true):
+        for i in range(len(y_true)):
             if y_true[i] == y_pred[i]:
                 if y_true[i] == 1:
                     TP += 1
