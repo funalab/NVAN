@@ -23,8 +23,13 @@ class LSTM(nn.Module):
             self.affine = nn.Linear(hidden_dim*2, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
+        self.phase = phase
 
     def forward(self, input):
         lstm_out, _ = self.lstm(input.view(input.shape[1], input.shape[0], -1))
         logits = self.affine(lstm_out[-1, :, :])
-        return logits
+
+        if self.phase == 'test':
+            return logits, None
+        else:
+            return logits
