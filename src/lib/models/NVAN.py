@@ -71,15 +71,19 @@ class NVAN(nn.Module):
         self.sharpening_factor = 2.0
 
         self.relu = nn.ReLU()
-        self.pool = nn.MaxPool2d(2, stride=2)
-        self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
-        self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
-        self.bn1 = nn.BatchNorm2d(16)
-        self.bn2 = nn.BatchNorm2d(32)
+        # self.pool = nn.MaxPool2d(2, stride=2)
+        # self.attn_fusion_1 = nn.Conv2d(2, 16, 5, 1, 2)
+        # self.attn_fusion_2 = nn.Conv2d(16, 32, 5, 1, 2)
+        # self.bn1 = nn.BatchNorm2d(16)
+        # self.bn2 = nn.BatchNorm2d(32)
+        self.attn_feature_view_fusion = nn.Conv2d(2, 32, (input_dim, hidden_dim * 2 - self.k + 1), 1, 0)
+        self.bn = nn.BatchNorm2d(32)
         if isinstance(lossfun, nn.CrossEntropyLoss):  # Multi-class classification
-            self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+            # self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, num_classes)
+            self.affine = nn.Linear(self.k * 32, num_classes)
         elif isinstance(lossfun, nn.BCEWithLogitsLoss):
-            self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, 1)
+            # self.affine = nn.Linear(int(hidden_dim * 2 / 4) * int(input_dim / 4) * 32, 1)
+            self.affine = nn.Linear(self.k * 32, 1)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
@@ -105,6 +109,7 @@ class NVAN(nn.Module):
             h_t.append(self.w_sc_t[str(v)](hidden_matrix[:,v,-1].view(hidden_matrix.shape[0],1,1,-1)))
         # h_t: [batch, 1, 1, k]
         h_t = torch.sum(torch.stack(h_t), dim=0)
+        h_ti = self.w_cc_1(hidden_matrix[:,:,-1].unsqueeze(1))
 
         e_ti = []
         for t in range(time_point - 1):
@@ -115,9 +120,7 @@ class NVAN(nn.Module):
             h_i = torch.sum(torch.stack(h_i), dim=0)
 
             ''' cross-context '''
-            h_ti = \
-                self.w_cc_1(hidden_matrix[:,:,-1].unsqueeze(1)) + \
-                self.w_cc_2(hidden_matrix[:,:,t].unsqueeze(1))
+            h_ti += self.w_cc_2(hidden_matrix[:,:,t].unsqueeze(1))
 
             ''' previous score information from attention matrix '''
             # hidden_matrix: [batch, view, time, dim]
@@ -162,41 +165,17 @@ class NVAN(nn.Module):
         attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
         return attention_matrix
 
-    def hybrid_focus_procedure_original(self, energy_matrix):
-        batch, view, time = energy_matrix.shape
-        # beta_top: [batch, view]
-        beta_top = torch.sum(self.relu(energy_matrix), dim=2)
-        # beta: [batch, view]
-        beta = torch.div(beta_top - torch.min(beta_top, dim=1)[0].unsqueeze(1),
-                         torch.max(beta_top, dim=1)[0].unsqueeze(1) - torch.min(beta_top, dim=1)[0].unsqueeze(1) + self.eps)
-
-        # e_sig: [batch, view, time]
-        e_sig = torch.sigmoid(energy_matrix)
-        # e_hat: [batch, view, time]
-        e_hat = []
-        for v in range(self.input_dim):
-            e_sig_v = e_sig[:,v]
-            e_sig_v_min = torch.min(e_sig_v, dim=1)[0].unsqueeze(1)
-            e_sig_v_max = torch.max(e_sig_v, dim=1)[0].unsqueeze(1)
-            e_hat.append(torch.div(e_sig_v - e_sig_v_min, e_sig_v_max - e_sig_v_min + self.eps))
-        e_hat = torch.stack(e_hat).permute(1, 0, 2)
-        e_hat = torch.mul(e_hat, beta.unsqueeze(2)) # [batch, view, time] x [batch, view, 1]
-        e_hat = torch.mul(e_hat, self.sharpening_factor)
-
-        # attention_matrix: [batch, view, time]
-        attention_matrix = self.softmax(e_hat.reshape(batch, view*time)).view(batch, view, time)
-        return attention_matrix
-
     def attentional_feature_fusion(self, hidden_matrix, attention_matrix):
         # context_matrix: [batch, view, dim]
-        context_matrix = torch.matmul(attention_matrix.unsqueeze(2), hidden_matrix[:,:,:-1]).squeeze(2)
+        # context_matrix = torch.matmul(attention_matrix.unsqueeze(2), hidden_matrix[:,:,:-1]).squeeze(2)
+        context_matrix = torch.sum(hidden_matrix[:,:,:-1] * attention_matrix, dim=2)
+        print(context_matrix.shape)
         # cat_matrix: [batch, channel, view, dim]
         cat_matrix = torch.stack([hidden_matrix[:,:,-1,:], context_matrix]).permute(1, 0, 2, 3)
-        logit = self.pool(self.relu(self.bn1(self.attn_fusion_1(cat_matrix))))
-        logit = self.pool(self.relu(self.bn2(self.attn_fusion_2(logit))))
-        #logit = self.pool(self.relu(self.attn_fusion_1(cat_matrix)))
-        #logit = self.pool(self.relu(self.attn_fusion_2(logit)))
-        logit = self.affine(logit.view(logit.size()[0], -1))
+        # logit = self.pool(self.relu(self.bn1(self.attn_fusion_1(cat_matrix))))
+        # logit = self.pool(self.relu(self.bn2(self.attn_fusion_2(logit))))
+        logit = self.relu(self.bn(self.attn_feature_view_fusion(cat_matrix)))
+        logit = self.affine(logit.view(logit.size(0), -1))
         return logit
 
     def forward(self, input):
@@ -212,7 +191,6 @@ class NVAN(nn.Module):
         energy_matrix = self.multi_view_attention(hidden_matrix)
         # attention_matrix: [batch, view, time]
         attention_matrix = self.hybrid_focus_procedure(energy_matrix)
-        # print('min: {}, max: {}'.format(attention_matrix.min(), attention_matrix.max()))
         # context_matrix: [batch, view, dim]
         logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
 
