@@ -104,10 +104,11 @@ def main():
                 best_depth = d
                 clf_best_best = clf_best
 
-    print('best f1_val: {0}, rank: {1}, depth: {2} iteration: {3}'.format(best_f1_val, best_rank, best_depth, clf_best_best.get_booster().best_iteration))
     log = {'best f1 validation': best_f1_val, 'best rank': best_rank, 'best depth': best_depth, 'best iteration': clf_best_best.get_booster().best_iteration}
     with open(os.path.join(save_dir, 'best_result'), 'a') as f:
         json.dump(log, f, indent=4)
+    print(log)
+    
     partialx_test = getPartialMatrix(x_test, vRank, best_rank, 0)
     clf_best_best.predict(partialx_test)
     y_test_pred = clf_best_best.predict(partialx_test)
@@ -115,15 +116,36 @@ def main():
     pre_test = sk.metrics.precision_score(y_test, y_test_pred, pos_label=1)
     rec_test = sk.metrics.recall_score(y_test, y_test_pred, pos_label=1)
     f1_test = sk.metrics.f1_score(y_test, y_test_pred, pos_label=1)
-    print('Test Accuracy: {}'.format(acc_test))
-    print('Test Precision: {}'.format(pre_test))
-    print('Test Recall: {}'.format(rec_test))
-    print('Test F-measure: {}'.format(f1_test))
-    log = {'best rank': best_rank, 'best depth': best_depth, 'test accuracy': acc_test,
-           'test precision': pre_test, 'test recall': rec_test, 'test f1': f1_test}
+
+    TP, TN, FP, FN = 0, 0, 0, 0
+    for i in range(len(y_test)):
+        if y_test.iloc[i] == y_test_pred[i]:
+            if y_test.iloc[i] == 1:
+                TP += 1
+            elif y_test.iloc[i] == 0:
+                TN += 1
+        else:
+            if y_test.iloc[i] == 1:
+                FN += 1
+            elif y_test.iloc[i] == 0:
+                FP += 1
+
+    log = {'accuracy': acc_test,
+           'precision': pre_test,
+           'recall': rec_test,
+           'f1': f1_test,
+           'TP': TP,
+           'TN': TN,
+           'FP': FP,
+           'FN': FN,
+           'AUROC': 0.0,
+           'AUPR': 0.0
+    }
     with open(os.path.join(save_dir, 'test_result'), 'a') as f:
         json.dump(log, f, indent=4)
-    
+    print('y_test: {}'.format(list(y_test)))
+    print('y_pred: {}'.format(list(y_test_pred)))
+    print(log)
 
 if __name__ == '__main__':
     main()
