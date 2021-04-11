@@ -25,7 +25,7 @@ def getPartialMatrix( vPd, vRank, colNum = 10 , pc = 0):
 def main():
     ap = argparse.ArgumentParser(description='python train_xgboost.py')
     ap.add_argument('--root', '-r', nargs='?', default='/home/tokuoka/git/embryo_classification', help='Specify root path')
-    ap.add_argument('--save_dir', nargs='?', default='results/train_xgboost', help='Specify output files directory for create figures')
+    ap.add_argument('--save_dir', nargs='?', default='results/train_XGBoost', help='Specify output files directory for create figures')
     ap.add_argument('--set', type=int, default=1, help='Specify index of set in MCCV')
     ap.add_argument('--input', nargs='?', default='RAW', help='Specify input type [RAW, PCA]')
     args = ap.parse_args()
@@ -53,18 +53,21 @@ def main():
         testData = testData[testData.name != i]
 
     x_train = trainData.iloc[:,:(trainData.shape[1]-1)]
-    y_train = trainData['learningInput'].str.replace('born', '0').str.replace('abort', '1').astype(int)
+    y_train = trainData['learningInput'].str.replace('born', '1').str.replace('abort', '0').astype(int)
     x_val = valData.iloc[:,:(valData.shape[1]-1)]
-    y_val = valData['learningInput'].str.replace('born', '0').str.replace('abort', '1').astype(int)
+    y_val = valData['learningInput'].str.replace('born', '1').str.replace('abort', '0').astype(int)
     x_test = testData.iloc[:,:(testData.shape[1]-1)]
-    y_test = testData['learningInput'].str.replace('born', '0').str.replace('abort', '1').astype(int)
+    y_test = testData['learningInput'].str.replace('born', '1').str.replace('abort', '0').astype(int)
 
     # Make Directory
     current_datetime = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y%m%d_%H%M%S')
-    save_dir = args.save_dir + '_set{}_'.format(args.set) + str(current_datetime)
+    save_dir = args.save_dir + '_set{0:02d}_'.format(args.set) + str(current_datetime)
     os.makedirs(save_dir, exist_ok=True)
+    save_dir_test = 'results/test_XGBoost_set{0:02d}_'.format(args.set) + str(current_datetime)
+    os.makedirs(save_dir_test, exist_ok=True)
 
-    numRank = [100,200,300,400,500,600,700,800,900,1000]
+    # numRank = [100,200,300,400,500,600,700,800,900,1000]
+    numRank = [0]
     numDepth = [1,2,3,4,5]
     best_rank = 0
     best_depth = 0
@@ -72,8 +75,10 @@ def main():
     log_iteration = {}
     for r in numRank:
         for d in numDepth:
-            partialx_train = getPartialMatrix(x_train, vRank, r, 0)
-            partialx_val = getPartialMatrix(x_val, vRank, r, 0)
+            # partialx_train = getPartialMatrix(x_train, vRank, r, 0)
+            # partialx_val = getPartialMatrix(x_val, vRank, r, 0)
+            partialx_train = x_train.drop('name', axis=1)
+            partialx_val = x_val.drop('name', axis=1)
 
             eval_set = [(partialx_train, y_train),(partialx_val, y_val)]
             eval_metric = ["logloss"]
@@ -109,7 +114,8 @@ def main():
         json.dump(log, f, indent=4)
     print(log)
     
-    partialx_test = getPartialMatrix(x_test, vRank, best_rank, 0)
+    # partialx_test = getPartialMatrix(x_test, vRank, best_rank, 0)
+    partialx_test = x_test.drop('name', axis=1)
     clf_best_best.predict(partialx_test)
     y_test_pred = clf_best_best.predict(partialx_test)
     acc_test = sk.metrics.accuracy_score(y_test, y_test_pred)
@@ -141,7 +147,7 @@ def main():
            'AUROC': 0.0,
            'AUPR': 0.0
     }
-    with open(os.path.join(save_dir, 'test_result'), 'a') as f:
+    with open(os.path.join(save_dir_test, 'log'), 'w') as f:
         json.dump(log, f, indent=4)
     print('y_test: {}'.format(list(y_test)))
     print('y_pred: {}'.format(list(y_test_pred)))
