@@ -71,6 +71,7 @@ def main(argv=None):
     # Seed
     random.seed(int(args.seed))
     np.random.seed(int(args.seed))
+    torch.manual_seed(args.seed)
 
     ''' Classifier '''
     # Initialize the classifier to train

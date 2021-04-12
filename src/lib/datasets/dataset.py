@@ -45,8 +45,7 @@ class EmbryoDataset(Dataset):
         return np.array([(v - np.mean(v)) / (np.std(v) + self.eps) for v in vec]).transpose(1, 0).astype(np.float32)
 
     def augmentation(self, vec):
-        #s = int(random.uniform(0, self.delete_tp))
-        e = int(random.uniform(0, self.delete_tp)) + 1
+        e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
         vec_aug = np.array(vec[:-e]).astype(np.float32)
         return vec_aug
 
@@ -95,7 +94,7 @@ class EmbryoImageDataset(Dataset):
             if self.model == 'Conv5DLSTM':
                 images = io.imread(image_path[0])[:-self.e]
             else:
-                e = int(random.uniform(0, self.delete_tp)) + 1
+                e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
                 images = io.imread(image_path[0])[:-e]
 
         return np.array(images).astype(np.float32)
@@ -114,7 +113,7 @@ class EmbryoImageDataset(Dataset):
             images, label = self.get_image(i), self.get_label(i)
             return torch.tensor(images), torch.tensor(label)
         elif self.model == 'Conv5DLSTM':
-            self.e = int(random.uniform(0, self.delete_tp)) + 1
+            self.e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
             self.basename = 'images_BF'
             images_2d = torch.tensor(self.get_image(i)).unsqueeze(1)
             self.basename = 'images'
