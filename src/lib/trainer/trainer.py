@@ -233,6 +233,8 @@ class Tester(object):
 
         auroc = self._vis_auroc(y_pred, y_true)
         aupr = self._vis_aupr(y_pred, y_true)
+        with open(os.path.join(self.save_dir, 'log_auc'), 'a') as f:
+            json.dump({'y_pred': y_pred, 'y_ture': y_true}, f, indent=4)
 
         return auroc, aupr
 
