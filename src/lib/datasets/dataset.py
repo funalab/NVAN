@@ -92,10 +92,16 @@ class EmbryoImageDataset(Dataset):
             io.imsave(filename, np.array(images).astype(np.float32))
         else:
             if self.model == 'Conv5DLSTM':
-                images = io.imread(image_path[0])[:-self.e]
+                if self.train:
+                    images = io.imread(image_path[0])[:-self.e]
+                else:
+                    images = io.imread(image_path[0])
             else:
-                e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
-                images = io.imread(image_path[0])[:-e]
+                if self.train:
+                    e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
+                    images = io.imread(image_path[0])[:-e]
+                else:
+                    images = io.imread(image_path[0])
 
         return np.array(images).astype(np.float32)
 
@@ -113,7 +119,8 @@ class EmbryoImageDataset(Dataset):
             images, label = self.get_image(i), self.get_label(i)
             return torch.tensor(images), torch.tensor(label)
         elif self.model == 'Conv5DLSTM':
-            self.e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
+            if self.train:
+                self.e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
             self.basename = 'images_BF'
             images_2d = torch.tensor(self.get_image(i)).unsqueeze(1)
             self.basename = 'images'
