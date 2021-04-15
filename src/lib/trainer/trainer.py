@@ -121,6 +121,7 @@ class Tester(object):
         self.device = kwargs['device']
         self.criteria_list = kwargs['criteria_list']
         os.makedirs(os.path.join(self.save_dir, 'figs'), exist_ok=True)
+        os.makedirs(os.path.join(self.save_dir, 'attention_weights'), exist_ok=True)
 
     def test(self, model, data_iter, phase="test"):
 
@@ -279,6 +280,7 @@ class Tester(object):
                 y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
             aw = aw.squeeze(0).cpu().numpy()
             filename = os.path.join(self.save_dir, 'figs', 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
+            np.savez(os.path.join(self.save_dir, 'attention_weights', 'attn_weight_{}.npz'.format(self.file_list[cnt])), arr_0=aw)
             self.make_heatmap(aw, y_pred, y_true, filename)
             cnt += 1
 
