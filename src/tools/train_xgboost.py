@@ -10,6 +10,7 @@ import argparse
 import xgboost as xgb
 import pandas as pd
 import sklearn as sk
+import numpy as np
 import matplotlib.pyplot as plt
 
 from statistics import mean
@@ -90,16 +91,24 @@ def main():
             clf_best.fit(partialx_train, y_train, eval_metric=eval_metric , eval_set=eval_set, verbose=False)
 
             y_train_pred = clf_best.predict(partialx_train)
-            y_val_pred = clf_best.predict(partialx_val)
+            y_val_pred = clf_best.predict(partialx_val)            
 
-            acc_train = sk.metrics.accuracy_score(y_train , y_train_pred)
-            acc_val = sk.metrics.accuracy_score(y_val , y_val_pred)
-            pre_val = sk.metrics.precision_score(y_val , y_val_pred, pos_label=1)
-            rec_val = sk.metrics.recall_score(y_val , y_val_pred, pos_label=1)
-            f1_val = sk.metrics.f1_score(y_val , y_val_pred, pos_label=1)
+            acc_train = sk.metrics.accuracy_score(y_train, y_train_pred)
+            acc_val = sk.metrics.accuracy_score(y_val, y_val_pred)
+            pre_val = sk.metrics.precision_score(y_val, y_val_pred, pos_label=1)
+            rec_val = sk.metrics.recall_score(y_val, y_val_pred, pos_label=1)
+            f1_val = sk.metrics.f1_score(y_val, y_val_pred, pos_label=1)
+
+            y_train_pred = clf_best.predict(partialx_train, output_margin=True)
+            auroc_train = sk.metrics.roc_auc_score(y_train, y_train_pred)
+            aupr_train = sk.metrics.average_precision_score(y_train, y_train_pred)
+            y_val_pred = clf_best.predict(partialx_val,  output_margin=True)
+            auroc_val = sk.metrics.roc_auc_score(y_val, y_val_pred)
+            aupr_val = sk.metrics.average_precision_score(y_val, y_val_pred)
 
             log = {'rank': r, 'depth': d, 'accuracy_train': acc_train, 'accuracy_validation': acc_val,
-                   'precision_validation': pre_val, 'recall_validation': rec_val, 'f1_validation': f1_val}
+                   'precision_validation': pre_val, 'recall_validation': rec_val, 'f1_validation': f1_val,
+                   'AUROC_validation': auroc_val, 'AUPR_validation': aupr_val}
             with open(os.path.join(save_dir, 'log'), 'a') as f:
                 json.dump(log, f, indent=4)
             if best_f1_val <= f1_val:
@@ -123,6 +132,10 @@ def main():
     rec_test = sk.metrics.recall_score(y_test, y_test_pred, pos_label=1)
     f1_test = sk.metrics.f1_score(y_test, y_test_pred, pos_label=1)
 
+    y_test_pred = clf_best_best.predict(partialx_test, output_margin=True)
+    auroc_test = sk.metrics.roc_auc_score(y_test, y_test_pred)
+    aupr_test = sk.metrics.average_precision_score(y_test, y_test_pred)
+
     TP, TN, FP, FN = 0, 0, 0, 0
     for i in range(len(y_test)):
         if y_test.iloc[i] == y_test_pred[i]:
@@ -144,11 +157,12 @@ def main():
            'TN': TN,
            'FP': FP,
            'FN': FN,
-           'AUROC': 0.0,
-           'AUPR': 0.0
+           'AUROC': auroc_test,
+           'AUPR': aupr_test
     }
     with open(os.path.join(save_dir_test, 'log'), 'w') as f:
         json.dump(log, f, indent=4)
+    np.savez(os.path.join(save_dir_test, 'log_auc.npz'), y_pred=y_test_pred, y_true=y_test)
     print('y_test: {}'.format(list(y_test)))
     print('y_pred: {}'.format(list(y_test_pred)))
     print(log)
