@@ -281,7 +281,7 @@ class Tester(object):
             aw = aw.squeeze(0).cpu().numpy()
             filename = os.path.join(self.save_dir, 'figs', 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
             np.savez(os.path.join(self.save_dir, 'attention_weights', 'attn_weight_{}.npz'.format(self.file_list[cnt])), arr_0=aw)
-            self.make_heatmap(aw, y_pred, y_true, filename)
+            self.make_heatmap(np.flipud(aw), y_pred, y_true, filename)
             cnt += 1
 
 
