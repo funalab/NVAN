@@ -253,7 +253,7 @@ def main(argv=None):
             f.write('weight_decay = 0.001\n')
             f.write('delete_tp = 50\n')
             f.write('# cuda:0 or cpu\n')
-            f.write('device = cuda:0\n')
+            f.write('device = {}\n'.format(args.device))
             f.write('seed = 0\n')
             f.write('phase = train\n')
             f.write('graph = False\n')
