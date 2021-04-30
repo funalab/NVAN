@@ -60,14 +60,16 @@ def get_dataset(args):
             split_list=args.split_list_train,
             basename=args.basename,
             train=True,
-            delete_tp=args.delete_tp
+            delete_tp=args.delete_tp,
+            delete_variable=args.delete_variable
         )
         validation_dataset = EmbryoDataset(
             root=args.root_path,
             split_list=args.split_list_validation,
             basename=args.basename,
             train=False,
-            delete_tp=None
+            delete_tp=None,
+            delete_variable=args.delete_variable
         )
     elif args.model == 'Conv2DLSTM' or 'Conv3DLSTM' or 'Conv5DLSTM':
         train_dataset = EmbryoImageDataset(
@@ -102,7 +104,8 @@ def get_test_dataset(args):
             split_list=args.split_list_test,
             basename=args.basename,
             train=False,
-            delete_tp=None
+            delete_tp=None,
+            delete_variable=args.delete_variable
         )
     elif args.model == 'Conv2DLSTM' or 'Conv3DLSTM' or 'Conv5DLSTM':
         test_dataset = EmbryoImageDataset(

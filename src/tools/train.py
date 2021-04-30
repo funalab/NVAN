@@ -11,6 +11,7 @@ import matplotlib.pylab as plt
 sys.path.append(os.getcwd())
 import random
 import numpy as np
+from glob import glob
 
 import torch
 import torch.nn as nn
@@ -186,18 +187,6 @@ def main(argv=None):
         torch.onnx.export(classifier, dummy_x.unsqueeze(0), os.path.join(save_dir, 'graph.onnx'), verbose=True, input_names=input_names, output_names=output_names)
         print('Success!')
 
-        # print('Making the graph of model.', end='')
-        # from torchviz import make_dot
-        # print('.', end='')
-        # dummy_x, _ = train_dataset.__getitem__(0)
-        # dummy_y = classifier(dummy_x.unsqueeze(0))
-        # print('.', end='')
-        # dot = make_dot(dummy_y.mean(), params=dict(classifier.named_parameters()))
-        # dot.format = 'png'
-        # print('.', end='')
-        # dot.render(os.path.join(save_dir, 'graph'))
-        # print('Success!')
-
     # Training
     trainer_args = {
         'optimizer' : optimizer,
@@ -213,6 +202,64 @@ def main(argv=None):
         train_iterator=train_iterator,
         validation_iterator=validation_iterator
     )
+
+    if args.delete_variable is not None:
+        aw_list = np.load(os.path.join(save_dir, 'aw_best_val.npz'), allow_pickle=True)['arr_0']
+        aw = np.ones((args.input_dim, 487))
+        for p in range(len(aw_list)):
+            aw *= aw_list[p][0, :,:487].cpu().numpy()
+        aw = aw ** (1/len(aw_list))
+        aw = np.sum(aw, axis=1)
+        index = np.argmin(aw)
+        new_delete_variable = []
+        cnt = 0
+        for i in range(11):
+            if i in eval(args.delete_variable):
+                new_delete_variable.append(i)
+            else:
+                if cnt == index:
+                    new_delete_variable.append(i)
+                cnt += 1
+        print(new_delete_variable)
+
+        set_num = int(args.split_list_train[len('datasets/split_list/mccv/set'):args.split_list_train.rfind('/')])
+        filename = os.path.join('confs', 'models', 'mccv_sv', 'NVAN', 'train_set{0}_sv{1:02d}.cfg'.format(set_num, len(new_delete_variable)))
+        with open(filename, 'w') as f:
+            f.write('[Dataset]\n')
+            f.write('root_path = datasets\n')
+            f.write('split_list_train = datasets/split_list/mccv/set{}/train.txt\n'.format(set_num))
+            f.write('split_list_validation = datasets/split_list/mccv/set{}/validation.txt\n'.format(set_num))
+            f.write('basename =input\n\n')
+
+            f.write('[Model]\n')
+            f.write('model = NVAN\n')
+            f.write('# init_classifier =\n')
+            f.write('input_dim = {}\n'.format(11 - len(new_delete_variable)))
+            f.write('num_classes = 2\n')
+            f.write('num_layers = 2\n')
+            f.write('hidden_dim = 128\n')
+            f.write('dropout = 0.5\n')
+            f.write('lossfun = nn.BCEWithLogitsLoss()\n')
+            f.write('eval_metrics = f1\n\n')
+
+            f.write('[Runtime]\n')
+            f.write('save_dir = results/train_NVAN_set{0:02d}_sv{1:02d}\n'.format(set_num, len(new_delete_variable)))
+            f.write('batchsize = 2\n')
+            f.write('val_batchsize = 1\n')
+            f.write('epoch = {}\n'.format(args.epoch))
+            f.write('optimizer = Adadelta\n')
+            f.write('lr = 1.0\n')
+            f.write('momentum = 0.95\n')
+            f.write('weight_decay = 0.001\n')
+            f.write('delete_tp = 50\n')
+            f.write('# cuda:0 or cpu\n')
+            f.write('device = cuda:0\n')
+            f.write('seed = 0\n')
+            f.write('phase = train\n')
+            f.write('graph = False\n')
+            f.write('# 0: number, 1: volume_mean, 2: volume_sd, 3: surface_mean, 4: surface_sd,\n')
+            f.write('# 5: aspect_mean, 6: aspect_sd, 7: solidity_mean, 8: solidity_sd, 9: centroid_mean, 10: centroid_sd\n')
+            f.write('delete_variable = {}   # input_dim == 11 - len(delete_variable)\n'.format(new_delete_variable))
 
 if __name__ == '__main__':
     main()

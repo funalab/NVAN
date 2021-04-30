@@ -39,7 +39,7 @@ class Trainer(object):
             model.train()
 
             loss_train = self._train_step(model, train_iterator)
-            eval_results, loss_val = validator.test(model, validation_iterator, phase="validation")
+            eval_results, loss_val, aw = validator.test(model, validation_iterator, phase="validation")
 
             self._save_log(epoch, loss_train, loss_val, eval_results)
 
@@ -51,6 +51,7 @@ class Trainer(object):
                 with open(os.path.join(self.save_dir, 'best_result'), 'w') as f:
                     json.dump({'best {}'.format(self.eval_metrics): self._best_accuracy,
                                'best epoch': best_epoch}, f, indent=4)
+                np.savez(os.path.join(self.save_dir, 'aw_best_val.npz'), arr_0=aw)
         print('best f1: {}'.format(self._best_accuracy))
         print('best epoch: {}'.format(best_epoch))
 
@@ -127,6 +128,7 @@ class Tester(object):
 
         # turn on the testing mode; clean up the history
         model.eval()
+        model.phase = phase
         output_list = []
         attn_weights_list = []
         truth_list = []
@@ -136,7 +138,7 @@ class Tester(object):
         for batch in data_iter:
             input, label = batch
 
-            if phase == 'test':
+            if phase == 'test' or phase == 'validation':
                 with torch.no_grad():
                     prediction, attn_weights = model(input.to(torch.device(self.device)))
                 if attn_weights != None:
@@ -163,8 +165,12 @@ class Tester(object):
             self.vis_attn_weights(attn_weights_list, output_list, truth_list)
 
         print("[{}] {}, loss: {}".format(phase, self.print_eval_results(eval_results), abs(np.mean(loss_list))))
+        model.phase = 'train'
 
-        return eval_results, abs(np.mean(loss_list))
+        if phase == 'validation':
+            return eval_results, abs(np.mean(loss_list)), np.array(attn_weights_list)
+        else:
+            return eval_results, abs(np.mean(loss_list))
 
 
     def evaluate(self, predict, truth):

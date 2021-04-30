@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 from src.lib.datasets.data_loader import csv_loader, csv_loader_criteria_list
 
 class EmbryoDataset(Dataset):
-    def __init__(self, root=None, split_list=None,basename='input', train=True, delete_tp=20):
+    def __init__(self, root=None, split_list=None,basename='input', train=True, delete_tp=20, delete_variable=None):
         self.root = root
         self.basename = basename
         self.train = train
@@ -23,12 +23,19 @@ class EmbryoDataset(Dataset):
         self.criteria_list = csv_loader_criteria_list(os.path.join(self.root, basename, self.file_list[0], 'criteria.csv'))
         self.eps = 0.000001
         self.delete_tp = delete_tp
+        if delete_variable != None and delete_variable != []:
+            self.delete_variable = np.flip(np.sort(eval(delete_variable)))
+        else:
+            self.delete_variable = None
 
     def __len__(self):
         return len(self.file_list)
 
     def get_input(self, i):
         input = csv_loader(os.path.join(self.root, self.basename, self.file_list[i], 'criteria.csv'))
+        if self.delete_variable is not None:
+            for d in self.delete_variable:
+                input = np.delete(input, obj=d, axis=1)
         return input
 
     def get_label(self, i):
@@ -73,7 +80,7 @@ class EmbryoImageDataset(Dataset):
         self.delete_tp = delete_tp
         self.ip_size = ip_size
         self.model = model
-
+            
     def __len__(self):
         return len(self.file_list)
 

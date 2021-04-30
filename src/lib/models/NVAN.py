@@ -40,7 +40,7 @@ class NVAN(nn.Module):
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
 
-        self.bgru = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
+        self.lstm = nn.LSTM(1, hidden_dim, num_layers, dropout=dropout, bidirectional=True)
 
         # self.multi_view_attention = self.location_based_attention
         self.multi_view_attention = self.context_based_attention
@@ -185,7 +185,7 @@ class NVAN(nn.Module):
         hidden_matrix = []
         for v in range(self.input_dim):
             # lstm_out: [batch, time, dim]
-            lstm_out, _ = self.bgru(input[:,:,v].unsqueeze(2))
+            lstm_out, _ = self.lstm(input[:,:,v].unsqueeze(2))
             hidden_matrix.append(lstm_out)
 
         # hidden_matrix: [batch, view, time, dim]
@@ -197,7 +197,7 @@ class NVAN(nn.Module):
         # context_matrix: [batch, view, dim]
         logit = self.view_wise_attentional_feature_fusion(hidden_matrix, attention_matrix)
 
-        if self.phase == 'test':
+        if self.phase == 'test' or self.phase == 'validation':
             return logit, attention_matrix
         else:
             return logit
