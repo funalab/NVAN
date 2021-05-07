@@ -25,6 +25,8 @@ class EmbryoDataset(Dataset):
         self.delete_tp = delete_tp
         if delete_variable != None and delete_variable != []:
             self.delete_variable = np.flip(np.sort(eval(delete_variable)))
+            for d in self.delete_variable:
+                self.criteria_list = self.criteria_list.pop(d)
         else:
             self.delete_variable = None
 
