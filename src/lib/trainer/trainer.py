@@ -52,7 +52,7 @@ class Trainer(object):
                     json.dump({'best {}'.format(self.eval_metrics): self._best_accuracy,
                                'best epoch': best_epoch}, f, indent=4)
                 np.savez(os.path.join(self.save_dir, 'aw_best_val.npz'), arr_0=aw)
-        print('best f1: {}'.format(self._best_accuracy))
+        print('best {}: {}'.format(self.eval_metrics, self._best_accuracy))
         print('best epoch: {}'.format(best_epoch))
 
 
