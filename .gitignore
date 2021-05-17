@@ -23,5 +23,4 @@ reports
 
 # Exception files
 src/lib/models/layer.py
-src/tools/graph_draw_all.py
 src/tools/graph_draw_all_embryo_cls.py
