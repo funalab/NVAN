@@ -106,6 +106,7 @@ class Trainer(object):
         result_each_epoch['precision_validation'] = float(eval_results["precision"])
         result_each_epoch['recall_validation'] = float(eval_results["recall"])
         result_each_epoch['f1_validation'] = float(eval_results["f1"])
+        result_each_epoch['mcc_validation'] = float(eval_results["mcc"])
         result_each_epoch['AUROC_validation'] = float(eval_results["AUROC"])
         result_each_epoch['AUPR_validation'] = float(eval_results["AUPR"])
         self.results[epoch] = result_each_epoch
@@ -210,13 +211,21 @@ class Tester(object):
                 elif y_true[i] == 0:
                     FP += 1
 
+        mcc = self.mcc(TP, TN, FP, FN)
         metrics_dict = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1,
-                        "TP": TP, "TN": TN, "FP": FP, "FN": FN}
+                        "mcc": mcc, "TP": TP, "TN": TN, "FP": FP, "FN": FN}
 
         print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
         print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
 
         return metrics_dict
+
+
+    def mcc(self, TP, TN, FP, FN):
+         if TP + FP == 0 or TP + FN == 0 or TN + FP == 0 or TN + FN == 0:
+             return 0
+         else:
+             return ((TP * TN) - (FP * FN)) / np.sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
 
 
     def evaluate_auc(self, predict, truth):

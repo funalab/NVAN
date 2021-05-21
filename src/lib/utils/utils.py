@@ -1,4 +1,5 @@
 import os
+import torch
 import torch.nn as nn
 # from src.lib.models import LSTM, LSTMAttention, LSTMMultiAttention, MuVAN, iMuVAN
 from src.lib.models.LSTM import LSTM
@@ -11,6 +12,7 @@ from src.lib.models.Conv2DLSTM import Conv2DLSTM
 from src.lib.models.Conv3DLSTM import Conv3DLSTM
 from src.lib.models.Conv5DLSTM import Conv5DLSTM
 from src.lib.datasets.dataset import EmbryoDataset, EmbryoImageDataset
+from src.lib.loss.focal_loss import FocalLoss
 
 
 def get_model(args):

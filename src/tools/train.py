@@ -12,6 +12,7 @@ sys.path.append(os.getcwd())
 import random
 import numpy as np
 from glob import glob
+import shutil
 
 import torch
 import torch.nn as nn
@@ -51,6 +52,13 @@ def main(argv=None):
         dataset_conf_dict = dict(config.items("Dataset"))
         classifier_conf_dict = dict(config.items("Model"))
         runtime_conf_dict = dict(config.items("Runtime"))
+
+    # Make Directory
+    current_datetime = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y%m%d_%H%M%S')
+    save_dir = args.save_dir + '_' + str(current_datetime)
+    os.makedirs(save_dir, exist_ok=True)
+    shutil.copy(args.conf_file, os.path.join(save_dir, os.path.basename(args.conf_file)))
+
 
     ''' Parameters '''
     # Dataset options
@@ -171,10 +179,6 @@ def main(argv=None):
     else:
         raise ValueError('Unknown optimizer name: {}'.format(args.optimizer))
 
-    # Make Directory
-    current_datetime = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y%m%d_%H%M%S')
-    save_dir = args.save_dir + '_' + str(current_datetime)
-    os.makedirs(save_dir, exist_ok=True)
 
     ''' Graph Visualization '''
     if eval(args.graph):
@@ -223,12 +227,12 @@ def main(argv=None):
         print(new_delete_variable)
 
         set_num = int(args.split_list_train[len('datasets/split_list/mccv/set'):args.split_list_train.rfind('/')])
-        filename = os.path.join('confs', 'models', 'mccv_sv', 'NVAN', 'train_set{0}_sv{1:02d}.cfg'.format(set_num, len(new_delete_variable)))
+        filename = os.path.join('confs', 'models', 'mccv_sv', 'NVAN', 'train_set{0:02d}_sv{1:02d}.cfg'.format(set_num, len(new_delete_variable)))
         with open(filename, 'w') as f:
             f.write('[Dataset]\n')
             f.write('root_path = datasets\n')
-            f.write('split_list_train = datasets/split_list/mccv/set{}/train.txt\n'.format(set_num))
-            f.write('split_list_validation = datasets/split_list/mccv/set{}/validation.txt\n'.format(set_num))
+            f.write('split_list_train = datasets/split_list/mccv/set{0:02d}/train.txt\n'.format(set_num))
+            f.write('split_list_validation = datasets/split_list/mccv/set{0:02d}/validation.txt\n'.format(set_num))
             f.write('basename =input\n\n')
 
             f.write('[Model]\n')
