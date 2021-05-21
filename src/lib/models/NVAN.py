@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from src.lib.loss.focal_loss import FocalLoss
 
 class NVAN(nn.Module):
     """
@@ -86,6 +87,8 @@ class NVAN(nn.Module):
             self.affine = nn.Linear((hidden_dim * 2 - 32 - 2) * base_ch * 2, num_classes)
         elif isinstance(lossfun, nn.BCEWithLogitsLoss):
             self.affine = nn.Linear((hidden_dim * 2 - 32 - 2) * base_ch * 2, 1)
+        elif isinstance(lossfun, FocalLoss):
+            self.affine = nn.Linear((hidden_dim * 2 - 32 - 2) * base_ch * 2, num_classes)
         self.softmax = nn.Softmax(dim=1)
         self.loss = lossfun
         self.phase = phase
