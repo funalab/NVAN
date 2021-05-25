@@ -109,6 +109,7 @@ class Trainer(object):
         result_each_epoch['mcc_validation'] = float(eval_results["mcc"])
         result_each_epoch['AUROC_validation'] = float(eval_results["AUROC"])
         result_each_epoch['AUPR_validation'] = float(eval_results["AUPR"])
+        result_each_epoch['TP,TN,FP,FN'] = (int(eval_results["TP"]), int(eval_results["TN"]), int(eval_results["FP"]) ,int(eval_results["FN"]))
         self.results[epoch] = result_each_epoch
         with open(os.path.join(self.save_dir, 'log'), 'w') as f:
             json.dump(self.results, f, indent=4)
