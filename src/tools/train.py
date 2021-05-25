@@ -53,12 +53,6 @@ def main(argv=None):
         classifier_conf_dict = dict(config.items("Model"))
         runtime_conf_dict = dict(config.items("Runtime"))
 
-    # Make Directory
-    current_datetime = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y%m%d_%H%M%S')
-    save_dir = args.save_dir + '_' + str(current_datetime)
-    os.makedirs(save_dir, exist_ok=True)
-    shutil.copy(args.conf_file, os.path.join(save_dir, os.path.basename(args.conf_file)))
-
 
     ''' Parameters '''
     # Dataset options
@@ -81,6 +75,13 @@ def main(argv=None):
     random.seed(int(args.seed))
     np.random.seed(int(args.seed))
     torch.manual_seed(args.seed)
+
+    # Make Directory
+    current_datetime = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y%m%d_%H%M%S')
+    save_dir = args.save_dir + '_' + str(current_datetime)
+    os.makedirs(save_dir, exist_ok=True)
+    shutil.copy(args.conf_file, os.path.join(save_dir, os.path.basename(args.conf_file)))
+
 
     ''' Classifier '''
     # Initialize the classifier to train
@@ -243,22 +244,22 @@ def main(argv=None):
             f.write('num_layers = 2\n')
             f.write('hidden_dim = 128\n')
             f.write('dropout = 0.5\n')
-            f.write('lossfun = nn.BCEWithLogitsLoss()\n')
-            f.write('eval_metrics = f1\n\n')
+            f.write('lossfun = {}\n'.format(args.lossfun))
+            f.write('eval_metrics = {}\n\n'.format(args.eval_metrics))
 
             f.write('[Runtime]\n')
             f.write('save_dir = results/train_NVAN_set{0:02d}_sv{1:02d}\n'.format(set_num, len(new_delete_variable)))
-            f.write('batchsize = 2\n')
+            f.write('batchsize = {}\n'.format(args.batchsize))
             f.write('val_batchsize = 1\n')
             f.write('epoch = {}\n'.format(args.epoch))
-            f.write('optimizer = Adadelta\n')
-            f.write('lr = 1.0\n')
-            f.write('momentum = 0.95\n')
-            f.write('weight_decay = 0.001\n')
-            f.write('delete_tp = 50\n')
+            f.write('optimizer = {}\n'.format(args.optimizer))
+            f.write('lr = {}\n'.format(args.lr))
+            f.write('momentum = {}\n'.format(args.momentum))
+            f.write('weight_decay = {}\n'.format(args.weight_decay))
+            f.write('delete_tp = {}\n'.format(args.delete_tp))
             f.write('# cuda:0 or cpu\n')
             f.write('device = {}\n'.format(args.device))
-            f.write('seed = 0\n')
+            f.write('seed = {}\n'.format(args.seed))
             f.write('phase = train\n')
             f.write('graph = False\n')
             f.write('# 0: number, 1: volume_mean, 2: volume_sd, 3: surface_mean, 4: surface_sd,\n')
