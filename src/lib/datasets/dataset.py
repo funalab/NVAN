@@ -54,9 +54,12 @@ class EmbryoDataset(Dataset):
         return np.array([(v - np.mean(v)) / (np.std(v) + self.eps) for v in vec]).transpose(1, 0).astype(np.float32)
 
     def augmentation(self, vec):
-        e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
-        vec_aug = np.array(vec[:-e]).astype(np.float32)
-        return vec_aug
+        if self.delete_tp > 0:
+            e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
+            vec_aug = np.array(vec[:-e]).astype(np.float32)
+            return vec_aug
+        else:
+            return vec
 
     def __getitem__(self, i):
         input, label = self.get_input(i), self.get_label(i)
@@ -102,13 +105,19 @@ class EmbryoImageDataset(Dataset):
         else:
             if self.model == 'Conv5DLSTM':
                 if self.train:
-                    images = io.imread(image_path[0])[:-self.e]
+                    if self.e > 0:
+                        images = io.imread(image_path[0])[:-self.e]
+                    else:
+                        images = io.imread(image_path[0])
                 else:
                     images = io.imread(image_path[0])
             else:
                 if self.train:
-                    e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
-                    images = io.imread(image_path[0])[:-e]
+                    if self.delete_tp > 0:
+                        e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
+                        images = io.imread(image_path[0])[:-e]
+                    else:
+                        images = io.imread(image_path[0])
                 else:
                     images = io.imread(image_path[0])
 
@@ -129,7 +138,10 @@ class EmbryoImageDataset(Dataset):
             return torch.tensor(images), torch.tensor(label)
         elif self.model == 'Conv5DLSTM':
             if self.train:
-                self.e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
+                if self.delete_tp > 0:
+                    self.e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
+                else:
+                    self.e = 0
             self.basename = 'images_BF'
             images_2d = torch.tensor(self.get_image(i)).unsqueeze(1)
             self.basename = 'images'
