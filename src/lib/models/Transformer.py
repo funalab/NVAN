@@ -68,7 +68,7 @@ class Transformer(nn.Module):
         final_feature_map = encoded_sents[:,-1,:]
         logit = self.fc(final_feature_map)
 
-        if self.phase == 'test':
+        if self.phase == 'test' or self.phase == 'validation':
             return logit, None
         else:
             return logit

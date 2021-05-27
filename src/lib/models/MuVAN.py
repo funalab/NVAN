@@ -176,7 +176,7 @@ class MuVAN(nn.Module):
         # context_matrix: [batch, view, dim]
         logit = self.attentional_feature_fusion(hidden_matrix, attention_matrix)
 
-        if self.phase == 'test':
+        if self.phase == 'test' or self.phase == 'validation':
             return logit, attention_matrix
         else:
             return logit

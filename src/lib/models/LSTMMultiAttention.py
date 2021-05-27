@@ -91,7 +91,7 @@ class LSTMMultiAttention(nn.Module):
         logit = logit.view(logit.size()[0], -1)
         logit = self.affine(logit)
 
-        if self.phase == 'test':
+        if self.phase == 'test' or self.phase == 'validation':
             return logit, attn_weights_matrix
         else:
             return logit

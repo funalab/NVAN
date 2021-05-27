@@ -94,7 +94,7 @@ class Conv5DLSTM(nn.Module):
         attn_out, attn_weights = self.attention(lstm_out)
         logits = self.affine(attn_out)
 
-        if self.phase == 'test':
+        if self.phase == 'test' or self.phase == 'validation':
             return logits, None
         else:
             return logits

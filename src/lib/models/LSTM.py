@@ -29,7 +29,7 @@ class LSTM(nn.Module):
         lstm_out, _ = self.lstm(input.view(input.shape[1], input.shape[0], -1))
         logits = self.affine(lstm_out[-1, :, :])
 
-        if self.phase == 'test':
+        if self.phase == 'test' or self.phase == 'validation':
             return logits, None
         else:
             return logits
