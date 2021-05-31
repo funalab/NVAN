@@ -54,7 +54,9 @@ class Trainer(object):
                 np.savez(os.path.join(self.save_dir, 'aw_best_val.npz'), arr_0=aw)
         print('best {}: {}'.format(self.eval_metrics, self._best_accuracy))
         print('best epoch: {}'.format(best_epoch))
-
+        with open(os.path.join(self.save_dir, 'optim_result'), 'w') as f:
+            json.dump({'best {}'.format(self.eval_metrics): self._best_accuracy,
+                       'best epoch': best_epoch}, f, indent=4)
 
     def _train_step(self, model, data_iterator):
 
