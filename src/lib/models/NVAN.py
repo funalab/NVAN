@@ -33,6 +33,7 @@ class NVAN(nn.Module):
             num_layers,
             hidden_dim,
             dropout,
+            base_ch,
             lossfun,
             phase='train'
             ):
@@ -72,7 +73,6 @@ class NVAN(nn.Module):
         self.sharpening_factor = 2.0
 
         self.relu = nn.ReLU()
-        base_ch = 16
         #view_wise_attn_fusion, view_wise_bn = {}, {}
         #for v in range(input_dim):
         #    view_wise_attn_fusion[str(v)] = nn.Conv2d(2, base_ch, (1, hidden_dim * 2 - self.k + 1), 1, 0)
