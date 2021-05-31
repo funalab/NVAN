@@ -41,6 +41,8 @@ def create_classifier_parser(remaining_argv, **conf_dict):
                         help='')
     parser.add_argument('--hidden_dim', type=int,
                         help='')
+    parser.add_argument('--base_ch', type=int,
+                        help='')
     parser.add_argument('--num_head', type=int,
                         help='')
     parser.add_argument('--dropout', type=float,
