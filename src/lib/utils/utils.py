@@ -16,7 +16,7 @@ from src.lib.loss.focal_loss import FocalLoss
 
 
 def get_model(args):
-    model_list = ['LSTM', 'LSTMAttention', 'LSTMMultiAttention', 'MuVAN', 'NVAN']
+    model_list = ['LSTM', 'LSTMAttention', 'LSTMMultiAttention', 'MuVAN']
     if args.model in model_list:
         model = eval(args.model)(
                 input_dim=args.input_dim,
@@ -24,6 +24,17 @@ def get_model(args):
                 num_layers=args.num_layers,
                 hidden_dim=args.hidden_dim,
                 dropout=args.dropout,
+                lossfun=eval(args.lossfun),
+                phase=args.phase
+            )
+    elif args.model == 'NVAN':
+        model = eval(args.model)(
+                input_dim=args.input_dim,
+                num_classes=args.num_classes,
+                num_layers=args.num_layers,
+                hidden_dim=args.hidden_dim,
+                dropout=args.dropout,
+                base_ch=args.base_ch,
                 lossfun=eval(args.lossfun),
                 phase=args.phase
             )
