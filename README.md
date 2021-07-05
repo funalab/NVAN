@@ -88,7 +88,7 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
     basename                                    : Specify the name of the directory where multivariate time series data is stored.
 
     [Model]
-    model                                       : Specify model name {``NVAN''}.
+    model                                       : Specify model name {"NVAN"}.
     init_classifier                             : Initialize the classifier from given file.
     input_dim                                   : Specify dimensions of input multivariate.
     num_classes                                 : Specify number of label class. 
@@ -104,14 +104,14 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
     batchsize                                   : Specify minibatch size in training.
     val_batchsize                               : Specify minibatch size in validation.
     epoch                                       : Specify the number of sweeps over the dataset to train.
-    optimizer                                   : Specify optimizer {``SGD'', ``Adadelta'', ``Adagrad'', ``Adam'', ``AdamW'', ``SparseAdam'', ``Adamax'', ``ASGD'', ``RMSprop''}.
+    optimizer                                   : Specify optimizer {"SGD", "Adadelta", "Adagrad", "Adam", "AdamW", "SparseAdam", "Adamax", "ASGD", "RMSprop"}.
     lr                                          : Specify initial learning rate for optimizer.
     momentum                                    : Specify momentum for optimizer.
     weight_decay                                : Specify weight decay (L2 norm) for optimizer.
     delete_tp                                   : Specify the number of time points to randomly delete the length of the input time series data. (parameter for augmentation in training.)
-    device                                      : Specify `cpu' or `cuda:[GPU ID]' (`cuda:0` if GPU ID is `0`)
+    device                                      : Specify "cpu" or "cuda:[GPU ID]" ("cuda:0" if GPU ID is "0")
     seed                                        : Specify the seed of the random number.
-    phase                                       : Specify the phase {``train'' or ``test''}
+    phase                                       : Specify the phase {"train" or "test"}
     graph                                       : Specify `True` to generate a computational graph.
     ```
 
@@ -121,9 +121,9 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
    Specify this file path as `init_classifier` in `confs/models/test_example.cfg`. After that, you can run the following command to infer the learned NVAN.
    The results of the inference will be generated in the `results/test_NVAN_example` directory.
 
-   ``sh
+   ```sh
    % ./scripts/run_test_example.sh
-   ``
+   ```
 
 
 ## Acknowledgement
