@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 from src.lib.datasets.data_loader import csv_loader, csv_loader_criteria_list
 
 class EmbryoDataset(Dataset):
-    def __init__(self, root=None, split_list=None,basename='input', train=True, delete_tp=20, delete_variable=None):
+    def __init__(self, root=None, split_list=None, basename='input', train=True, delete_tp=20, delete_variable=None):
         self.root = root
         self.basename = basename
         self.train = train

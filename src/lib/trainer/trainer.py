@@ -44,7 +44,7 @@ class Trainer(object):
             self._save_log(epoch, loss_train, loss_val, eval_results)
 
             if self.best_eval_result(eval_results):
-                torch.save(model.to('cpu'), os.path.join(self.save_dir, 'best_model'))
+                torch.save(model.to('cpu'), os.path.join(self.save_dir, 'best_model.npz'))
                 model.to(torch.device(self.device))
                 best_epoch = epoch
                 print("Saved better model selected by validation.")
@@ -146,7 +146,7 @@ class Tester(object):
                 with torch.no_grad():
                     prediction, attn_weights = model(input.to(torch.device(self.device)))
                 if attn_weights != None:
-                    attn_weights_list.append(attn_weights.detach())
+                    attn_weights_list.append(attn_weights.detach().numpy())
             else:
                 with torch.no_grad():
                     prediction = model(input.to(torch.device(self.device)))
@@ -158,7 +158,7 @@ class Tester(object):
                 loss = model.loss(prediction.squeeze(1), label.to(torch.device(self.device)).view(len(label)))
             else: # Multi-class classification
                 loss = model.loss(prediction, label.to(torch.device(self.device)).view(len(label)))
-            loss_list.append(loss.to(torch.device('cpu')).detach())
+            loss_list.append(loss.to(torch.device('cpu')).detach().numpy())
 
         # evaluate
         eval_results = self.evaluate(output_list, truth_list)
@@ -218,8 +218,8 @@ class Tester(object):
         metrics_dict = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1,
                         "mcc": mcc, "TP": TP, "TN": TN, "FP": FP, "FN": FN}
 
-        print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
-        print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
+        # print('y_ture: {}'.format(np.array(y_true).reshape(len(y_true))))
+        # print('y_pred: {}'.format(np.array(y_pred).reshape(len(y_pred))))
 
         return metrics_dict
 
@@ -296,7 +296,8 @@ class Tester(object):
                 y_pred = [[np.array([1]) if torch.sigmoid(l).cpu() > 0.5 else np.array([0]) for l in logit]]
             else: # Multi-class classification
                 y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
-            aw = aw.squeeze(0).cpu().numpy()
+            #aw = aw.squeeze(0).cpu().numpy()
+            aw = aw.squeeze(0)
             filename = os.path.join(self.save_dir, 'figs', 'attention_weight_{}.pdf'.format(self.file_list[cnt]))
             np.savez(os.path.join(self.save_dir, 'attention_weights', 'attn_weight_{}.npz'.format(self.file_list[cnt])), arr_0=aw)
             self.make_heatmap(np.flipud(aw), y_pred, y_true, filename)

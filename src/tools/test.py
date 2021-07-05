@@ -74,18 +74,13 @@ def main(argv=None):
 
     ''' Classifier '''
     # Initialize the classifier to train
-    classifier = get_model(args)
     if args.init_classifier is not None:
         print('Load classifier from', args.init_classifier)
         classifier = torch.load(args.init_classifier)
         classifier.phase = args.phase
-
-
-    # Prepare device
-    if args.device == 'cuda:0':
         classifier = classifier.to(args.device)
     else:
-        classifier = classifier.to(args.device)
+        raise ValueError('Specified trained model')
 
     ''' Dataset '''
     # Load dataset
