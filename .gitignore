@@ -13,6 +13,36 @@ lib/*.pyc
 .ipynb_checkpoints
 __pycache__
 
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# PyCharm
+.idea/
 
 # Output & Resource
 results
@@ -20,7 +50,17 @@ scripts
 refs
 datasets
 reports
+notebooks
+images
+confs
 
 # Exception files
 src/lib/models/layer.py
+src/lib/models/LSTMMultiAttention.py
+src/tools/graph_draw_all_old.py
+src/tools/graph_draw_all_ttest.py
 src/tools/graph_draw_all_embryo_cls.py
+confs/models/kfcv/LSTMMultiAttention/
+confs/models/kfcv_best/
+confs/models/mccv_sv/
+README_gitlab.md
