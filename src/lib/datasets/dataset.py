@@ -85,6 +85,7 @@ class EmbryoImageDataset(Dataset):
         self.delete_tp = delete_tp
         self.ip_size = ip_size
         self.model = model
+        self.end_time = 360
             
     def __len__(self):
         return len(self.file_list)
@@ -106,20 +107,22 @@ class EmbryoImageDataset(Dataset):
             if self.model == 'Conv5DLSTM':
                 if self.train:
                     if self.e > 0:
-                        images = io.imread(image_path[0])[:-self.e]
+                        images = io.imread(image_path[0])[:self.end_time]
+                        images = images[:-self.e]
                     else:
-                        images = io.imread(image_path[0])
+                        images = io.imread(image_path[0])[:self.end_time]
                 else:
-                    images = io.imread(image_path[0])
+                    images = io.imread(image_path[0])[:self.end_time]
             else:
                 if self.train:
                     if self.delete_tp > 0:
                         e = torch.randint(0, self.delete_tp, (1,)).numpy()[0] + 1
-                        images = io.imread(image_path[0])[:-e]
+                        images = io.imread(image_path[0])[:self.end_time]
+                        images = images[:-e]
                     else:
-                        images = io.imread(image_path[0])
+                        images = io.imread(image_path[0])[:self.end_time]
                 else:
-                    images = io.imread(image_path[0])
+                    images = io.imread(image_path[0])[:self.end_time]
 
         return np.array(images).astype(np.float32)
 

@@ -5,13 +5,15 @@ import numpy as np
 
 from torch.nn.utils.rnn import pad_sequence
 
+end_time = 360
+
 def csv_loader(path):
     with open(path, 'r') as f:
         reader = csv.reader(f)
         vec = [row[1:] for row in reader]
         vec.pop(0)
         vec = np.array(vec).astype(np.float32)
-    return vec
+    return vec[:end_time]
 
 def csv_loader_criteria_list(path):
     with open(path, 'r') as f:
