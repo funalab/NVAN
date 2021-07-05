@@ -27,7 +27,7 @@ def main():
     ap = argparse.ArgumentParser(description='python train_xgboost.py')
     ap.add_argument('--root', '-r', nargs='?', default='/home/tokuoka/git/embryo_classification', help='Specify root path')
     ap.add_argument('--save_dir', nargs='?', default='results/train_XGBoost', help='Specify output files directory for create figures')
-    ap.add_argument('--set', type=int, default=1, help='Specify index of set in MCCV')
+    ap.add_argument('--set', type=int, default=1, help='Specify index of set in KFCV')
     ap.add_argument('--input', nargs='?', default='RAW', help='Specify input type [RAW, PCA]')
     args = ap.parse_args()
     
@@ -35,9 +35,9 @@ def main():
     allData = allData[ allData.learningInput != 'no_pups']
     vRank = pd.read_csv(os.path.join(args.root, 'datasets', 'tree', 'PCARotation.csv'), index_col=0)
 
-    split_list_train = os.path.join(args.root, 'datasets', 'split_list', 'mccv', 'set{}'.format(args.set), 'train.txt')
-    split_list_val = os.path.join(args.root, 'datasets', 'split_list', 'mccv', 'set{}'.format(args.set), 'validation.txt')
-    split_list_test = os.path.join(args.root, 'datasets', 'split_list', 'mccv', 'set{}'.format(args.set), 'test.txt')
+    split_list_train = os.path.join(args.root, 'datasets', 'split_list', 'kfcv', 'set{0:02d}'.format(args.set), 'train.txt')
+    split_list_val = os.path.join(args.root, 'datasets', 'split_list', 'kfcv', 'set{0:02d}'.format(args.set), 'validation.txt')
+    split_list_test = os.path.join(args.root, 'datasets', 'split_list', 'kfcv', 'test.txt')
     with open(split_list_train, 'r') as f:
         file_list_train = [line.rstrip() for line in f]
     with open(split_list_val, 'r') as f:
@@ -138,6 +138,7 @@ def main():
 
     TP, TN, FP, FN = 0, 0, 0, 0
     for i in range(len(y_test)):
+        print('y_test_pred: {}'.format(y_test_pred[i]))
         if y_test.iloc[i] == y_test_pred[i]:
             if y_test.iloc[i] == 1:
                 TP += 1
