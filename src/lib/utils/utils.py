@@ -1,10 +1,8 @@
 import os
 import torch
 import torch.nn as nn
-# from src.lib.models import LSTM, LSTMAttention, LSTMMultiAttention, MuVAN, iMuVAN
 from src.lib.models.LSTM import LSTM
 from src.lib.models.LSTMAttention import LSTMAttention
-from src.lib.models.LSTMMultiAttention import LSTMMultiAttention
 from src.lib.models.MuVAN import MuVAN
 from src.lib.models.NVAN import NVAN
 from src.lib.models.Transformer import Transformer

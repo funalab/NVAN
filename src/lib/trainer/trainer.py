@@ -146,7 +146,7 @@ class Tester(object):
                 with torch.no_grad():
                     prediction, attn_weights = model(input.to(torch.device(self.device)))
                 if attn_weights != None:
-                    attn_weights_list.append(attn_weights.detach().numpy())
+                    attn_weights_list.append(attn_weights.detach().cpu().numpy())
             else:
                 with torch.no_grad():
                     prediction = model(input.to(torch.device(self.device)))
