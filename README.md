@@ -7,10 +7,18 @@ This project is carried out in cooperation with [Funahashi Lab. at Keio Universi
 ## Overview
 
 Normalized Multi-view Attention Network (NVAN) performs the task of classification using multivariate time-series data as input.
+An overview diagram of NVAN is shown below.
 The multivariate time-series data in this project was obtained from images segmented by [QCANet](https://github.com/funalab/QCANet).
+
+![overview](images/overview.png)
 
 
 ## Performance
+
+The result of classification accuracy of multivariate time-series data using NVAN is shown below.
+NVAN have succeeded in classifying embryos with high accuracy compared to methods that use various time series data for classification.
+
+![overview](images/comparison.png)
 
 
 ## Requirements
@@ -20,7 +28,6 @@ The multivariate time-series data in this project was obtained from images segme
 - [NumPy](http://www.numpy.org)
 - [scikit-image](http://scikit-image.org/)
 - [Matplotlib](https://matplotlib.org/)
-
 
 
 ## QuickStart
@@ -109,9 +116,11 @@ The multivariate time-series data in this project was obtained from images segme
     ```
 
 2. Run inference in trained NVAN
+
    The trained NVAN is `results/train_NVAN_example/best_model.npz`, which was generated in the previous step.
    Specify this file path as `init_classifier` in `confs/models/test_example.cfg`. After that, you can run the following command to infer the learned NVAN.
    The results of the inference will be generated in the `results/test_NVAN_example` directory.
+
    ``sh
    % ./scripts/run_test_example.sh
    ``
