@@ -53,6 +53,7 @@ reports
 notebooks
 images
 confs
+models
 
 # Exception files
 src/lib/models/layer.py
