@@ -1,6 +1,6 @@
 # NVAN (Normalized Multi-view Attention Network)
 
-This is the code for [hoge](fuga).
+This is the code for [XXX](XXX).
 This project is carried out in cooperation with [Funahashi Lab. at Keio University](https://fun.bio.keio.ac.jp/) and two labs: [Kobayashi Lab. at the University of Tokyo](http://research.crmind.net/) and Yamagata Lab. at Kindai University.
 
 
@@ -126,7 +126,23 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
    ```
 
 
+## References
+
+- [Hochreiter, S. & Schmidhuber, J. Long short-term memory. Neural computation 9, 1735–1780 (1997).](https://ieeexplore.ieee.org/abstract/document/6795963)
+- [Luong, M.-T., Pham, H. and Manning, C. D. Effective approaches to attention-based neural machine translation. EMNLP 2015, 1412-1421.](https://arxiv.org/abs/1508.04025)
+- [Vaswani, A. et al. Attention is all you need. NeurIPS 2017, 6000-6010.](https://arxiv.org/abs/1706.03762)
+- [Yuan, Ye, et al. MuVAN: A multi-view attention network for multivariate temporal data. ICDM 2018, 717-726.](https://ieeexplore.ieee.org/document/8594896)
+- [Hu, J. & Zheng, W. Multistage attention network for multivariate time series prediction. Neurocomputing 383, 122–137 (2020).](https://www.sciencedirect.com/science/article/pii/S0925231219316625?via%3Dihub)
+- [Zhang, X., Gao, Y., Lin, J. & Lu, C.-T. TapNet: Multivariate time series classification with attentional prototypical network. AAAI 2020, vol. 34, 6845–6852](https://ojs.aaai.org//index.php/AAAI/article/view/6165)
+- [Chen, T. & Guestrin, C. XGBoost: A scalable tree boosting system. KDD 2016, 785–794](https://dl.acm.org/doi/10.1145/2939672.2939785)
+- [Sainath, T. N., Vinyals, O., Senior, A. & Sak, H. Convolutional, long short-term memory, fully connected deep neural networks. ICASSP 2015, 4580–4584.](https://ieeexplore.ieee.org/document/7178838)
+
+
 ## Acknowledgement
 
-The microscopic images used to generate multivariate time-series data included in this repository is provided by Yamagata Lab., Kindai University.
-The development of this algorithm was funded by JSPS KAKENHI Grant Numbers XXX to [Akira Funahashi](https://github.com/funasoul).
+The microscopic images used to generate multivariate time-series data
+included in this repository is provided by Yamagata Lab., Kindai
+University. The development of this algorithm was funded by JSPS
+KAKENHI Grant Number 20H03244 and JST CREST Grant Number JPMJCR2011 to
+[Akira Funahashi](https://github.com/funasoul) and JSPS KAKENHI Grant
+Number 19J13189 to [Yuta Tokuoka](https://github.com/tokkuman).
