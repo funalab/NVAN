@@ -1,4 +1,4 @@
-# NVAN (Normalized Multi-view Attention Network)
+# NVAN (Normalized Multi-View Attention Network)
 
 This is the code for [XXX](XXX).
 This project is carried out in cooperation with [Funahashi Lab. at Keio University](https://fun.bio.keio.ac.jp/) and two labs: [Kobayashi Lab. at the University of Tokyo](http://research.crmind.net/) and Yamagata Lab. at Kindai University.
@@ -6,7 +6,7 @@ This project is carried out in cooperation with [Funahashi Lab. at Keio Universi
 
 ## Overview
 
-Normalized Multi-view Attention Network (NVAN) performs the task of classification using multivariate time-series data as input.
+Normalized Multi-View Attention Network (NVAN) performs the task of classification using multivariate time-series data as input.
 An overview diagram of NVAN is shown below.
 The multivariate time-series data in this project was obtained from images segmented by [QCANet](https://github.com/funalab/QCANet).
 
