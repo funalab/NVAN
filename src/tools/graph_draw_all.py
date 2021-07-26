@@ -34,17 +34,19 @@ class GraphDraw():
         self.label = ['born', 'abort']
         self.color = ['royalblue', 'tomato'] # born, abort
         self.time_max = 360
+        self.label_size = 20
+        self.figsize = (8, 6)
 
     def graph_draw_number(self, Time, Count_born, Count_abort):
         # Count
         label = []
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(Count_born)):
             plt.plot(Time[:len(Count_born[num])], Count_born[num], color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(Count_abort)):
             plt.plot(Time[:len(Count_abort[num])], Count_abort[num], color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Number of Nuclei', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Number of Nuclei', size=self.label_size)
         # plt.legend(self.label)
         if Time[-1] != 0:
             plt.xlim([0.0, round(Time[-1], 1)])
@@ -58,7 +60,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(Count_born)):
             plt.plot(Time[:len(Count_born[num])], Count_born[num], color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -68,25 +70,26 @@ class GraphDraw():
             abort_mean.append(Count_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Number of Nuclei', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Number of Nuclei', size=self.label_size)
         # plt.legend(self.label)
         if Time[-1] != 0:
             #plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.ylim([0, 40])
         plt.savefig(os.path.join(self.save_dir, 'mean_number.pdf'))
 
 
 
     def graph_draw_volume(self, Time, MeanVol_born, StdVol_born, MeanVol_abort, StdVol_abort):
         # Volume Mean & SD
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(MeanVol_born)):
             plt.plot(Time[:len(MeanVol_born[num])], np.array(MeanVol_born[num]) * self.scale, color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(MeanVol_abort)):
             plt.plot(Time[:len(MeanVol_abort[num])], np.array(MeanVol_abort[num]) * self.scale, color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Volume [$\mu m^{3}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Volume [$\mu m^{3}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -94,7 +97,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(MeanVol_born)):
             plt.plot(Time[:len(MeanVol_born[num])], np.array(MeanVol_born[num]) * self.scale, color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -104,21 +107,21 @@ class GraphDraw():
             abort_mean.append(MeanVol_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Volume [$\mu m^{3}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Volume [$\mu m^{3}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
         plt.savefig(os.path.join(self.save_dir, 'mean_volume_mean.pdf'))
 
 
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(StdVol_born)):
             plt.plot(Time[:len(StdVol_born[num])], np.array(StdVol_born[num]) * self.scale, color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(StdVol_abort)):
             plt.plot(Time[:len(StdVol_abort[num])], np.array(StdVol_abort[num]) * self.scale, color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Volume (standard deviation) [$\mu m^{3}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Volume (standard deviation) [$\mu m^{3}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -126,7 +129,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(StdVol_born)):
             plt.plot(Time[:len(StdVol_born[num])], np.array(StdVol_born[num]) * self.scale, color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -136,8 +139,8 @@ class GraphDraw():
             abort_mean.append(StdVol_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Volume (standard deviation) [$\mu m^{3}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Volume (standard deviation) [$\mu m^{3}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -146,13 +149,13 @@ class GraphDraw():
 
     def graph_draw_surface(self, Time, MeanArea_born, StdArea_born, MeanArea_abort, StdArea_abort):
         # Surface Mean & SD
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(MeanArea_born)):
             plt.plot(Time[:len(MeanArea_born[num])], np.array(MeanArea_born[num]) * self.scale, color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(MeanArea_abort)):
             plt.plot(Time[:len(MeanArea_abort[num])], np.array(MeanArea_abort[num]) * self.scale, color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Surface Area [$\mu m^{2}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Surface Area [$\mu m^{2}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -160,7 +163,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(MeanArea_born)):
             plt.plot(Time[:len(MeanArea_born[num])], np.array(MeanArea_born[num]) * self.scale, color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -170,21 +173,21 @@ class GraphDraw():
             abort_mean.append(MeanArea_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Surface Area [$\mu m^{2}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Surface Area [$\mu m^{2}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
         plt.savefig(os.path.join(self.save_dir, 'mean_surface_area_mean.pdf'))
 
 
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(MeanArea_born)):
             plt.plot(Time[:len(StdArea_born[num])], np.array(StdArea_born[num]) * self.scale, color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(MeanArea_abort)):
             plt.plot(Time[:len(StdArea_abort[num])], np.array(StdArea_abort[num]) * self.scale, color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Surface Area (standard deviation) [$\mu m^{2}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Surface Area (standard deviation) [$\mu m^{2}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -192,7 +195,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(MeanArea_born)):
             plt.plot(Time[:len(StdArea_born[num])], np.array(StdArea_born[num]) * self.scale, color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -202,8 +205,8 @@ class GraphDraw():
             abort_mean.append(StdArea_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Surface Area (standard deviation) [$\mu m^{2}$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Surface Area (standard deviation) [$\mu m^{2}$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -212,13 +215,13 @@ class GraphDraw():
 
     def graph_draw_aspect_ratio(self, Time, MeanAsp_born, StdAsp_born, MeanAsp_abort, StdAsp_abort):
         # Aspect Ratio Mean & SD
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(MeanAsp_born)):
             plt.plot(Time[:len(MeanAsp_born[num])], np.array(MeanAsp_born[num]), color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(MeanAsp_abort)):
             plt.plot(Time[:len(MeanAsp_abort[num])], np.array(MeanAsp_abort[num]), color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Aspect Ratio', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Aspect Ratio', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -226,7 +229,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(MeanAsp_born)):
             plt.plot(Time[:len(MeanAsp_born[num])], np.array(MeanAsp_born[num]), color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -236,21 +239,21 @@ class GraphDraw():
             abort_mean.append(MeanAsp_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Aspect Ratio', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Aspect Ratio', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
         plt.savefig(os.path.join(self.save_dir, 'mean_aspect_ratio_mean.pdf'))
 
 
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(StdAsp_born)):
             plt.plot(Time[:len(StdAsp_born[num])], np.array(StdAsp_born[num]), color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(StdAsp_abort)):
             plt.plot(Time[:len(StdAsp_abort[num])], np.array(StdAsp_abort[num]), color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Aspect Ratio (standard deviation)', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Aspect Ratio (standard deviation)', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -258,7 +261,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(StdAsp_born)):
             plt.plot(Time[:len(StdAsp_born[num])], np.array(StdAsp_born[num]), color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -268,8 +271,8 @@ class GraphDraw():
             abort_mean.append(StdAsp_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Aspect Ratio (standard deviation)', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Aspect Ratio (standard deviation)', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -279,13 +282,13 @@ class GraphDraw():
 
     def graph_draw_solidity(self, Time, MeanSol_born, StdSol_born, MeanSol_abort, StdSol_abort):
         # Solidity Mean & SD
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(MeanSol_born)):
             plt.plot(Time[:len(MeanSol_born[num])], np.array(MeanSol_born[num]), color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(MeanSol_abort)):
             plt.plot(Time[:len(MeanSol_abort[num])], np.array(MeanSol_abort[num]), color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Solidity', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Solidity', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -293,7 +296,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(MeanSol_born)):
             plt.plot(Time[:len(MeanSol_born[num])], np.array(MeanSol_born[num]), color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -303,21 +306,21 @@ class GraphDraw():
             abort_mean.append(MeanSol_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Solidity', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Solidity', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
         plt.savefig(os.path.join(self.save_dir, 'mean_solidity_mean.pdf'))
 
 
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(StdSol_born)):
             plt.plot(Time[:len(StdSol_born[num])], np.array(StdSol_born[num]), color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(StdSol_abort)):
             plt.plot(Time[:len(StdSol_abort[num])], np.array(StdSol_abort[num]), color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Solidity (standard deviation)', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Solidity (standard deviation)', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -325,7 +328,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(StdSol_born)):
             plt.plot(Time[:len(StdSol_born[num])], np.array(StdSol_born[num]), color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -335,8 +338,8 @@ class GraphDraw():
             abort_mean.append(StdSol_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Solidity (standard deviation)', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Solidity (standard deviation)', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -345,13 +348,13 @@ class GraphDraw():
 
     def graph_draw_centroid(self, Time, MeanCen_born, StdCen_born, MeanCen_abort, StdCen_abort):
         # Centroid Mean & SD
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(MeanCen_born)):
             plt.plot(Time[:len(MeanCen_born[num])], np.array(MeanCen_born[num]), color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(MeanCen_abort)):
             plt.plot(Time[:len(MeanCen_abort[num])], np.array(MeanCen_abort[num]), color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Centroid [$\mu m$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Centroid [$\mu m$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -359,7 +362,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(MeanCen_born)):
             plt.plot(Time[:len(MeanCen_born[num])], np.array(MeanCen_born[num]), color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -369,21 +372,21 @@ class GraphDraw():
             abort_mean.append(MeanCen_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Centroid [$\mu m$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Centroid [$\mu m$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
         plt.savefig(os.path.join(self.save_dir, 'mean_centroid_mean.pdf'))
 
 
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         for num in range(len(StdCen_born)):
             plt.plot(Time[:len(StdCen_born[num])], np.array(StdCen_born[num]), color=self.color[0], alpha=0.8, linewidth=1.0, label=self.label[0])
         for num in range(len(StdCen_abort)):
             plt.plot(Time[:len(StdCen_abort[num])], np.array(StdCen_abort[num]), color=self.color[1], alpha=0.8, linewidth=1.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Centroid (standard deviation) [$\mu m$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Centroid (standard deviation) [$\mu m$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
@@ -391,7 +394,7 @@ class GraphDraw():
 
         # mean plot
         tp_min = 488
-        plt.figure()
+        plt.figure(figsize=self.figsize)
         born_mean, abort_mean = [], []
         for num in range(len(StdCen_born)):
             plt.plot(Time[:len(StdCen_born[num])], np.array(StdCen_born[num]), color=self.color[0], alpha=0.2, linewidth=1.0, label=self.label[0])
@@ -401,8 +404,8 @@ class GraphDraw():
             abort_mean.append(StdCen_abort[num][:tp_min])
         plt.plot(Time[:tp_min], np.mean(born_mean, axis=0), color=self.color[0], alpha=1.0, linewidth=2.0, label=self.label[0])
         plt.plot(Time[:tp_min], np.mean(abort_mean, axis=0), color=self.color[1], alpha=1.0, linewidth=2.0, label=self.label[1])
-        plt.xlabel('Time [day]', size=12)
-        plt.ylabel('Centroid (standard deviation) [$\mu m$]', size=12)
+        plt.xlabel('Time [day]', size=self.label_size)
+        plt.ylabel('Centroid (standard deviation) [$\mu m$]', size=self.label_size)
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
