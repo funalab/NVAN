@@ -40,20 +40,12 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
 
 2. Install requirements.
 
-   - CPU version
-     ```sh
-     % cd NVAN/
-     % python -m venv venv
-     % source ./venv/bin/activate
-     % pip install -r requirements.txt
-     ```
-
-   - GPU version (requires Anaconda)
-     ```sh
-     % cd NVAN/
-     % conda create --name nvan --file conda-spec-file.txt
-     % conda activate nvan
-     ```
+   ```sh
+   % cd NVAN/
+   % python -m venv venv
+   % source ./venv/bin/activate
+   % pip install -r requirements.txt
+   ```
 
 3. Inference on example test dataset.
 
