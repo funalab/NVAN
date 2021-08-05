@@ -35,14 +35,14 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
 1. Download this repository by `git clone`.
 
    ```sh
-   % git clone https://gitlab.com/funalab/embryo_classification.git
+   % git clone https://github.com/funalab/NVAN.git
    ```
 
 2. Install requirements.
 
    - CPU version
      ```sh
-     % cd embryo_classification/
+     % cd NVAN/
      % python -m venv venv
      % source ./venv/bin/activate
      % pip install -r requirements.txt
@@ -50,7 +50,7 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
 
    - GPU version (requires Anaconda)
      ```sh
-     % cd embryo_classification/
+     % cd NVAN/
      % conda create --name nvan --file conda-spec-file.txt
      % conda activate nvan
      ```
