@@ -178,12 +178,7 @@ class Tester(object):
 
 
     def evaluate(self, predict, truth):
-        """Compute evaluation metrics.
-
-        :param predict: list of Tensor
-        :param truth: list of dict
-        :return eval_results: dict, format {name: metrics}.
-        """
+        """ Compute evaluation metrics for classification """
         y_trues, y_preds = [], []
         for y_true, logit in zip(truth, predict):
             y_true = y_true.cpu().numpy()
@@ -232,12 +227,7 @@ class Tester(object):
 
 
     def evaluate_auc(self, predict, truth):
-        """Compute evaluation metrics.
-
-        :param predict: list of Tensor
-        :param truth: list of dict
-        :return eval_results: dict, format {name: metrics}.
-        """
+        """ Compute evaluation metrics for AUC """
         y_trues, y_preds = [], []
         for y_true, logit in zip(truth, predict):
             y_true = y_true.cpu().numpy()
@@ -323,38 +313,3 @@ class Tester(object):
         return ", ".join(
             [str(key) + "=" + "{:.4f}".format(value)
              for key, value in results.items()])
-
-
-
-class Predictor(object):
-
-    def __init__(self):
-        pass
-
-
-    def predict(self, model, data_iterator):
-
-        # turn on the testing mode; clean up the history
-        model.eval()
-        batch_output = []
-
-        for batch in data_iterator:
-            input = batch
-
-            with torch.no_grad():
-                prediction = model(*input)
-
-            batch_output.append(prediction.detach())
-
-        return self._post_processor(batch_output)
-
-
-    def _post_processor(self, batch_output):
-        """Convert logit tensor to label."""
-        y_preds = []
-        for logit in batch_output:
-            y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
-            y_preds.append(y_pred)
-        y_pred = np.concatenate(y_preds, axis=0)
-
-        return y_pred
