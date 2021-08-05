@@ -63,7 +63,7 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
    % ./scripts/run_test.sh
    ```
 
-   After running the command, the results will be generated in the `results/test_NVAN` directory.
+   After running the command, the results will be generated in the `results/test_NVAN_[time_stamp]` directory.
 
 
 ## How to train and run NVAN
@@ -71,7 +71,7 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
 1. Train NVAN with example dataset
 
    Run the following command to train NVAN on the datasets/input_example dataset, which is time-series segmentation images acquired by QCANet into multivariate time series data.
-   The training results will be generated in the results/train_NVAN_example directory.
+   The training results will be generated in the `results/train_NVAN_example_[time_stamp]` directory.
    ```sh
    % ./scripts/run_train_example.sh
    ```
@@ -117,13 +117,18 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
 
 2. Run inference in trained NVAN
 
-   The trained NVAN is `results/train_NVAN_example/best_model.npz`, which was generated in the previous step.
+   The trained NVAN is `results/train_NVAN_example_[time_stamp]/best_model.npz`, which was generated in the previous step.
    Specify this file path as `init_classifier` in `confs/models/test_example.cfg`. After that, you can run the following command to infer the learned NVAN.
-   The results of the inference will be generated in the `results/test_NVAN_example` directory.
+   The results of the inference will be generated in the `results/test_NVAN_example_[time_stamp]` directory.
 
    ```sh
    % ./scripts/run_test_example.sh
    ```
+   `results/test_example_[time_stamp]/log` contains the classification accuracy of the inference.
+   `results/test_example_[time_stamp]/figs/` contains the generated graphs of AUROC/AUPR and attention map.
+   By checking the attention map shown below, you can interpret which variates NVAN has focused on during inference.
+
+   ![attention map](images/attention_weight_E03F09Embryo01.png)
 
 
 ## References
