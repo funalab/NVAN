@@ -1,6 +1,6 @@
 # NVAN (Normalized Multi-View Attention Network)
 
-This is the code for [XXX](XXX).
+This is the code for [Deep learning-based algorithm for predicting the live birth potential of mouse embryos](XXX).
 This project is carried out in cooperation with [Funahashi Lab. at Keio University](https://fun.bio.keio.ac.jp/) and two labs: [Kobayashi Lab. at the University of Tokyo](http://research.crmind.net/) and Yamagata Lab. at Kindai University.
 
 
@@ -56,6 +56,11 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
    ```
 
    After running the command, the results will be generated in the `results/test_NVAN_[time_stamp]` directory.
+   `results/test_NVAN_[time_stamp]/log` is described in the classification accuracy of the inference.
+   `results/test_NVAN_[time_stamp]/figs/` contains the generated graphs of AUROC/AUPR and attention map.
+   By checking the attention map shown below, you can interpret which variates NVAN has focused on during inference.
+
+   ![attention map](images/attention_weight_E03F09Embryo01.png)
 
 
 ## How to train and run NVAN
@@ -110,17 +115,13 @@ NVAN have succeeded in classifying embryos with high accuracy compared to method
 2. Run inference in trained NVAN
 
    The trained NVAN is `results/train_NVAN_example_[time_stamp]/best_model.npz`, which was generated in the previous step.
-   Specify this file path as `init_classifier` in `confs/models/test_example.cfg`. After that, you can run the following command to infer the learned NVAN.
-   The results of the inference will be generated in the `results/test_NVAN_example_[time_stamp]` directory.
+   Specify this file path as `init_classifier` in `confs/models/test_example.cfg`.
+   After that, you can run the following command to infer the learned NVAN.
 
    ```sh
    % ./scripts/run_test_example.sh
    ```
-   `results/test_example_[time_stamp]/log` contains the classification accuracy of the inference.
-   `results/test_example_[time_stamp]/figs/` contains the generated graphs of AUROC/AUPR and attention map.
-   By checking the attention map shown below, you can interpret which variates NVAN has focused on during inference.
-
-   ![attention map](images/attention_weight_E03F09Embryo01.png)
+   The results of the inference will be generated in the `results/test_NVAN_example_[time_stamp]` directory.
 
 
 ## References
