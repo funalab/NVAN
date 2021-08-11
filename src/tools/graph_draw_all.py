@@ -11,6 +11,7 @@ sys.path.append(os.getcwd())
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 from glob import glob
 import skimage.io as skimage
@@ -19,7 +20,7 @@ import skimage.morphology as mor
 from argparse import ArgumentParser
 from datetime import datetime
 import pytz
-plt.style.use('ggplot')
+#plt.style.use('ggplot')
 
 class GraphDraw():
 
@@ -36,6 +37,7 @@ class GraphDraw():
         self.time_max = 360
         self.label_size = 20
         self.figsize = (8, 6)
+        self.ticks_size = 20
 
     def graph_draw_number(self, Time, Count_born, Count_abort):
         # Count
@@ -56,6 +58,8 @@ class GraphDraw():
         plt.plot(1, 1, color=self.color[0], label=self.label[0])
         plt.plot(1, 1, color=self.color[1], label=self.label[1])
         plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0, fontsize=16)
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'legend.pdf'), bbox_inches='tight')
 
         # mean plot
@@ -77,7 +81,9 @@ class GraphDraw():
             #plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
         plt.ylim([0, 40])
-        plt.savefig(os.path.join(self.save_dir, 'mean_number.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.savefig(os.path.join(self.save_dir, 'mean_number.pdf'), bbox_inches='tight')
 
 
 
@@ -93,6 +99,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'volume_mean.pdf'))
 
         # mean plot
@@ -112,7 +120,10 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_volume_mean.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda v,p: f'{int(v):,d}'))
+        plt.savefig(os.path.join(self.save_dir, 'mean_volume_mean.pdf'), bbox_inches='tight')
 
 
         plt.figure(figsize=self.figsize)
@@ -125,6 +136,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'volume_std.pdf'))
 
         # mean plot
@@ -144,7 +157,10 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_volume_std.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda v,p: f'{int(v):,d}'))
+        plt.savefig(os.path.join(self.save_dir, 'mean_volume_std.pdf'), bbox_inches='tight')
 
 
     def graph_draw_surface(self, Time, MeanArea_born, StdArea_born, MeanArea_abort, StdArea_abort):
@@ -159,6 +175,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'surface_area_mean.pdf'))
 
         # mean plot
@@ -178,7 +196,10 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_surface_area_mean.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda v,p: f'{int(v):,d}'))
+        plt.savefig(os.path.join(self.save_dir, 'mean_surface_area_mean.pdf'), bbox_inches='tight')
 
 
         plt.figure(figsize=self.figsize)
@@ -191,6 +212,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'surface_area_std.pdf'))
 
         # mean plot
@@ -210,7 +233,10 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_surface_area_std.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda v,p: f'{int(v):,d}'))
+        plt.savefig(os.path.join(self.save_dir, 'mean_surface_area_std.pdf'), bbox_inches='tight')
 
 
     def graph_draw_aspect_ratio(self, Time, MeanAsp_born, StdAsp_born, MeanAsp_abort, StdAsp_abort):
@@ -225,6 +251,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'aspect_ratio_mean.pdf'))
 
         # mean plot
@@ -244,7 +272,9 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_aspect_ratio_mean.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.savefig(os.path.join(self.save_dir, 'mean_aspect_ratio_mean.pdf'), bbox_inches='tight')
 
 
         plt.figure(figsize=self.figsize)
@@ -257,6 +287,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'aspect_ratio_std.pdf'))
 
         # mean plot
@@ -276,7 +308,9 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_aspect_ratio_std.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.savefig(os.path.join(self.save_dir, 'mean_aspect_ratio_std.pdf'), bbox_inches='tight')
 
 
 
@@ -292,6 +326,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'solidity_mean.pdf'))
 
         # mean plot
@@ -311,7 +347,9 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_solidity_mean.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.savefig(os.path.join(self.save_dir, 'mean_solidity_mean.pdf'), bbox_inches='tight')
 
 
         plt.figure(figsize=self.figsize)
@@ -324,6 +362,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'solidity_std.pdf'))
 
         # mean plot
@@ -343,7 +383,9 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_solidity_std.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.savefig(os.path.join(self.save_dir, 'mean_solidity_std.pdf'), bbox_inches='tight')
 
 
     def graph_draw_centroid(self, Time, MeanCen_born, StdCen_born, MeanCen_abort, StdCen_abort):
@@ -358,6 +400,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'centroid_mean.pdf'))
 
         # mean plot
@@ -377,7 +421,9 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_centroid_mean.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.savefig(os.path.join(self.save_dir, 'mean_centroid_mean.pdf'), bbox_inches='tight')
 
 
         plt.figure(figsize=self.figsize)
@@ -390,6 +436,8 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
         plt.savefig(os.path.join(self.save_dir, 'centroid_std.pdf'))
 
         # mean plot
@@ -409,7 +457,9 @@ class GraphDraw():
         if Time[-1] != 0:
             # plt.xlim([0.0, round(Time[-1], 1)])
             plt.xlim([0.0, Time[self.time_max]])
-        plt.savefig(os.path.join(self.save_dir, 'mean_centroid_std.pdf'))
+        plt.xticks(size=self.ticks_size)
+        plt.yticks(size=self.ticks_size)
+        plt.savefig(os.path.join(self.save_dir, 'mean_centroid_std.pdf'), bbox_inches='tight')
 
 
 if __name__ == '__main__':
