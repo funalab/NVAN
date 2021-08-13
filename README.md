@@ -1,4 +1,4 @@
-# NVAN (Normalized Multi-View Attention Network)
+# NVAN :Normalized Multi-View Attention Network
 
 This is the code for [Deep learning-based algorithm for predicting the live birth potential of mouse embryos](XXX).
 This project is carried out in cooperation with [Funahashi Lab. at Keio University](https://fun.bio.keio.ac.jp/) and two labs: [Kobayashi Lab. at the University of Tokyo](http://research.crmind.net/) and Yamagata Lab. at Kindai University.
