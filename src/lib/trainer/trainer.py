@@ -81,11 +81,6 @@ class Trainer(object):
 
 
     def best_eval_result(self, eval_results):
-        """Check if the current epoch yields better validation results.
-
-        :param eval_results: dict, format {metrics_name: value}
-        :return: bool, True means current results on dev set is the best.
-        """
         assert self.eval_metrics in eval_results, \
             "Evaluation doesn't contain metrics '{}'." \
             .format(self.eval_metrics)
@@ -99,7 +94,6 @@ class Trainer(object):
 
 
     def _save_log(self, epoch, loss_train, loss_val, eval_results):
-
         result_each_epoch = {}
         result_each_epoch['epoch'] = epoch
         result_each_epoch['loss_train'] = float(loss_train)
@@ -129,7 +123,6 @@ class Tester(object):
         os.makedirs(os.path.join(self.save_dir, 'attention_weights'), exist_ok=True)
 
     def test(self, model, data_iter, phase="test"):
-
         # turn on the testing mode; clean up the history
         model.eval()
         model.phase = phase
@@ -307,9 +300,6 @@ class Tester(object):
 
 
     def print_eval_results(self, results):
-        """Override this method to support more print formats.
-        :param results: dict, (str: float) is (metrics name: value)
-        """
         return ", ".join(
             [str(key) + "=" + "{:.4f}".format(value)
              for key, value in results.items()])
