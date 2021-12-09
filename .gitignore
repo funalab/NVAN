@@ -55,7 +55,7 @@ images
 confs
 models
 
-# Exception files
+# Specific files
 src/lib/models/layer.py
 src/lib/models/LSTMMultiAttention.py
 src/tools/graph_draw_all_old.py
@@ -65,3 +65,6 @@ confs/models/kfcv/LSTMMultiAttention/
 confs/models/kfcv_best/
 confs/models/mccv_sv/
 README_gitlab.md
+
+# Exception
+!src/lib/datasets
