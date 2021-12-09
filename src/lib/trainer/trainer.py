@@ -164,10 +164,7 @@ class Tester(object):
         print("[{}] {}, loss: {}".format(phase, self.print_eval_results(eval_results), abs(np.mean(loss_list))))
         model.phase = 'train'
 
-        if phase == 'validation':
-            return eval_results, abs(np.mean(loss_list)), np.array(attn_weights_list)
-        else:
-            return eval_results, abs(np.mean(loss_list))
+        return eval_results, abs(np.mean(loss_list)), np.array(attn_weights_list)
 
 
     def evaluate(self, predict, truth):
@@ -178,7 +175,8 @@ class Tester(object):
             if len(logit[0]) == 1:
                 y_pred = [[np.array([1]) if torch.sigmoid(l).cpu() > 0.5 else np.array([0]) for l in logit]]
             else: # Multi-class classification
-                y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
+                print('hoge')
+                y_pred = [[np.argmax(l) for l in logit]]
             y_trues.append(y_true)
             y_preds.append(y_pred)
         y_true = np.concatenate(y_trues, axis=0)
@@ -278,7 +276,7 @@ class Tester(object):
             if len(logit[0]) == 1:
                 y_pred = [[np.array([1]) if torch.sigmoid(l).cpu() > 0.5 else np.array([0]) for l in logit]]
             else: # Multi-class classification
-                y_pred = [[np.argmax(l).cpu().numpy() for l in logit]]
+                y_pred = [[np.argmax(l) for l in logit]]
             #aw = aw.squeeze(0).cpu().numpy()
             aw = aw.squeeze(0)
             filename = os.path.join(self.save_dir, 'figs', 'attention_weight_{}.pdf'.format(self.file_list[cnt]))

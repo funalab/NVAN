@@ -184,7 +184,7 @@ def main(argv=None):
     ''' Graph Visualization '''
     if eval(args.graph):
         print('Making the graph of model.', end='')
-        dummy_x, _ = train_dataset.__getitem__(0)
+        dummy_x = torch.tensor(train_dataset.get_input(0))
         input_names = ['input']
         print('.', end='')
         output_names = ['output']

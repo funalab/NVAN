@@ -109,7 +109,7 @@ def main(argv=None):
         'criteria_list' : test_dataset.criteria_list
         }
     tester = Tester(**tester_args)
-    result, _ = tester.test(classifier, test_iterator, phase='test')
+    result, _, _ = tester.test(classifier, test_iterator, phase='test')
     with open(os.path.join(save_dir, 'log'), 'w') as f:
         json.dump(result, f, indent=4)
 
